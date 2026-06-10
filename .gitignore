@@ -1,0 +1,10 @@
+.DS_Store
+*.zip
+*.mp4
+*.mov
+*.webp
+*.numbers
+*.pdf
+*.3mf
+*.gcode
+build/
