@@ -1,0 +1,73 @@
+/* Felles for hub-mockupene. Farger og regler fra Teknas designmanual; skrift er Arial (manualens systemfont). */
+:root{
+  --turkis:#00B3B3; --lysbla:#CCF0F0; --morkbla:#003847; --gronn:#B5FFD0; --hvit:#fff;
+  --skarp:#28FAFF; --gul:#F7D68B; --rod:#F25656;
+  --dempet:#3d6672; --strek:#b9cfd4;
+  --marg:44px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--hvit);color:var(--morkbla);font:400 20px/1.3 Arial,Helvetica,sans-serif;caret-color:var(--turkis);scrollbar-color:var(--turkis) transparent}
+::selection{background:var(--gul);color:var(--morkbla)}
+:focus-visible{outline:3px solid var(--morkbla);outline-offset:3px}
+button,select,input{font-family:inherit;color:inherit;border-radius:0}
+h1,h2,p{margin:0}
+
+.app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto}
+main{min-height:0;display:grid}
+main>section{min-height:0}
+
+.topp{background:var(--turkis);display:flex;flex-wrap:wrap;align-items:center;gap:12px 32px;padding-block:12px;padding-inline:var(--marg)}
+.topp img{height:56px;width:auto;display:block}
+.topp h1{font-size:28px;letter-spacing:-.01em}
+.faner{display:flex;gap:8px}
+.faner button{font-weight:700;font-size:20px;padding:10px 22px;border:2px solid var(--morkbla);background:transparent;cursor:pointer}
+.faner button:hover{background:var(--lysbla)}
+.faner button[aria-selected="true"]{background:var(--morkbla);color:var(--hvit)}
+.hoyre{margin-left:auto;display:flex;flex-wrap:wrap;align-items:center;gap:10px 24px;font-size:18px}
+
+.med{position:relative}
+.med summary{cursor:pointer;font-weight:700;padding:10px 16px;border:2px solid var(--morkbla);list-style:none}
+.med summary::-webkit-details-marker{display:none}
+.med summary:hover{background:var(--lysbla)}
+.med[open] summary{background:var(--morkbla);color:var(--hvit)}
+.medliste{position:absolute;right:0;top:calc(100% + 8px);z-index:5;background:var(--hvit);border:2px solid var(--morkbla);padding:18px 22px;display:grid;grid-template-columns:repeat(2,auto);gap:12px 32px;box-shadow:0 12px 32px rgb(0 56 71 / .22)}
+.medliste label{display:flex;gap:10px;align-items:center;font-weight:700;font-size:22px;white-space:nowrap;cursor:pointer}
+.medliste input{width:24px;height:24px;accent-color:var(--morkbla);margin:0}
+
+.send{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:end;padding-block:14px 18px;padding-inline:var(--marg);background:var(--lysbla)}
+.felt{display:flex;flex-direction:column;gap:4px;min-width:0}
+.felt label{font-size:15px;font-weight:700}
+.felt select,.felt input{font-size:22px;padding:10px 12px;border:2px solid var(--morkbla);background:var(--hvit);min-width:0}
+.felt input[aria-invalid="true"]{border-color:var(--rod);border-width:4px;padding:8px 10px}
+.send button{font-weight:700;font-size:22px;padding:12px 34px;background:var(--morkbla);color:var(--hvit);border:2px solid var(--morkbla);cursor:pointer}
+.send button:hover{background:var(--turkis);color:var(--morkbla)}
+.send button:active{transform:translateY(1px)}
+
+.feed{display:flex;flex-direction:column;min-height:0}
+.feed header{display:flex;align-items:end;justify-content:space-between;gap:16px;padding-bottom:18px}
+.feed h2{font-size:26px;letter-spacing:-.01em;white-space:nowrap}
+.feed ol{list-style:none;margin:0;padding:0;overflow:auto;display:flex;flex-direction:column;gap:18px;flex:1;min-height:0}
+.feed li{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:14px;align-items:baseline}
+.feed time{font-size:16px;color:var(--dempet);font-variant-numeric:tabular-nums}
+.feed .hvem{font-weight:700;font-size:20px}
+.feed .tekst{grid-column:2;font-size:26px;line-height:1.2;overflow-wrap:anywhere}
+.feed .tom{color:var(--dempet)}
+.merke{font-size:15px;font-weight:700;padding:2px 8px;background:var(--gul);margin-left:8px;white-space:nowrap}
+.merke.alle{background:var(--gronn)}
+
+.signal{padding-block:48px;padding-inline:var(--marg);display:flex;flex-direction:column;gap:16px;max-width:calc(62ch + 2 * var(--marg))}
+.signal h2{font-size:44px;letter-spacing:-.02em}
+.signal a{color:var(--morkbla);font-weight:700;text-underline-offset:4px;text-decoration-thickness:2px}
+
+@media (max-width:900px){
+  :root{--marg:16px}
+  html,body{height:auto}
+  .app{height:auto;display:block}
+  main{display:block}
+  .hoyre{margin-left:0}
+  .medliste{right:auto;left:0}
+  .send{grid-template-columns:minmax(0,1fr)}
+}

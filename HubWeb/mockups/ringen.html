@@ -1,0 +1,126 @@
+<title>TeknaRadio Hub Ringen</title>
+<link rel="stylesheet" href="hub-base.css">
+<style>
+/* Ringen: alle boksene står rundt HUB. Linjer mellom partnere tegnes når de finner hverandre, og hver sending går som en strek fra avsender til mottaker. */
+#vis-tavle{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(340px,.9fr);gap:var(--marg);padding-block:20px;padding-inline:var(--marg)}
+.ringboks{min-height:0;display:flex;flex-direction:column;gap:8px}
+#ring{flex:1;min-height:0;width:100%;display:block}
+.hjelp{font-size:18px;color:var(--dempet)}
+
+.par{stroke:var(--morkbla);stroke-width:3}
+.par.halv{stroke:var(--strek);stroke-dasharray:10 8}
+.hubsirkel{fill:var(--turkis)}
+.hubtekst{font-weight:700;font-size:34px;fill:var(--morkbla);text-anchor:middle}
+.plate{cursor:pointer}
+.plate rect{fill:var(--hvit);stroke:var(--morkbla);stroke-width:2}
+.plate .n{font-weight:700;font-size:44px;fill:var(--morkbla);text-anchor:middle;letter-spacing:-.01em}
+.plate .s{font-size:22px;fill:var(--morkbla);text-anchor:middle}
+.plate[data-s="nett"] rect{fill:var(--gronn)}
+.plate[data-s="tent"] rect{fill:var(--gul);stroke-width:6}
+.plate[data-s="borte"] rect{stroke:var(--rod);stroke-width:7}
+.plate[data-s="venter"] rect{stroke:var(--strek);stroke-dasharray:10 8}
+.plate[data-s="fri"] rect{stroke:none;fill:none}
+.plate[data-s="fri"] text,.plate[data-s="venter"] text{fill:var(--dempet)}
+.plate:hover rect{stroke-width:5}
+.plate:focus-visible{outline:none}
+.plate:focus-visible rect{stroke:var(--morkbla);stroke-width:7}
+
+.skudd{fill:none;stroke-linecap:round;stroke-dasharray:.2 1.2;stroke-dashoffset:.2;animation:skudd .9s cubic-bezier(.16,1,.3,1) forwards}
+.skudd.msg{stroke:var(--turkis);stroke-width:11}
+.skudd.tenn{stroke:var(--morkbla);stroke-width:6}
+.skudd.puls{stroke:var(--turkis);stroke-width:3;animation-duration:1.2s}
+@keyframes skudd{to{stroke-dashoffset:-1}}
+@media (prefers-reduced-motion:reduce){.skudd{display:none}}
+
+@media (max-width:900px){
+  #vis-tavle{grid-template-columns:minmax(0,1fr)}
+  #ring{aspect-ratio:1;flex:none}
+  .feed ol{max-height:60vh}
+}
+</style>
+
+<div class="app">
+  <header id="topp"></header>
+  <main>
+    <section id="vis-tavle">
+      <div class="ringboks">
+        <svg id="ring" viewBox="0 0 1000 1000" preserveAspectRatio="xMinYMid meet" role="group" aria-label="Alle boksene rundt HUB"></svg>
+        <p class="hjelp">Linjen går mellom to partnere. Klikk på et navn for å se samtalen til paret.</p>
+      </div>
+      <aside id="feed"></aside>
+    </section>
+    <section id="vis-signal" class="signal" hidden>
+      <h2>Signalvei</h2>
+      <p>Her kommer forklaringen av hvordan en melding går fra én boks, gjennom lufta og fram til partneren. Skissen finnes fra før og flyttes inn i denne fanen.</p>
+      <p><a href="https://claude.ai/artifact/JL7PcXTJ9EPd4gHdjxRsPw">Åpne skissen av Signalvei</a></p>
+    </section>
+  </main>
+  <footer id="bunn"></footer>
+</div>
+
+<script src="hub-sim.js" charset="utf-8"></script>
+<script>
+var H = Hub, S = H.S, NS = "http://www.w3.org/2000/svg", svg = document.getElementById("ring");
+var M = { x: 500, y: 500 }, pos = {}, plate = {}, lenker, spor;
+
+H.skall([{ id: "tavle", navn: "Tavle" }, { id: "signal", navn: "Signalvei" }]);
+var feed = H.feed(document.getElementById("feed"));
+
+function el(navn, attr, tekst) {
+  var e = document.createElementNS(NS, navn);
+  for (var k in attr) e.setAttribute(k, attr[k]);
+  if (tekst) e.textContent = tekst;
+  return e;
+}
+
+// Navn nummer i havner på plass i*5 rundt ringen. Da sitter partnere nesten rett overfor hverandre,
+// og linjene mellom dem legger seg rundt HUB i stedet for gjennom den.
+S.navn.forEach(function (n, i) {
+  var v = (((i * 5) % 12) * 30 + 15 - 90) * Math.PI / 180;
+  pos[n] = { x: M.x + 390 * Math.cos(v), y: M.y + 390 * Math.sin(v) };
+});
+lenker = svg.appendChild(el("g", {}));
+spor = svg.appendChild(el("g", {}));
+svg.appendChild(el("circle", { cx: M.x, cy: M.y, r: 64, "class": "hubsirkel" }));
+svg.appendChild(el("text", { x: M.x, y: M.y + 12, "class": "hubtekst" }, "HUB"));
+S.navn.forEach(function (n) {
+  var p = pos[n], g = el("g", { "class": "plate", tabindex: 0, role: "button" });
+  g.appendChild(el("rect", { x: p.x - 96, y: p.y - 46, width: 192, height: 92 }));
+  g.appendChild(el("text", { x: p.x, y: p.y + 4, "class": "n" }, n));
+  g.appendChild(el("text", { x: p.x, y: p.y + 32, "class": "s" }));
+  g.onclick = function () { feed.velg(n); };
+  g.onkeydown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); feed.velg(n); } };
+  plate[n] = svg.appendChild(g);
+});
+
+function oppdater() {
+  S.navn.forEach(function (n) {
+    var g = plate[n];
+    g.dataset.s = H.status(n);
+    g.lastChild.textContent = H.statustekst(n);
+    g.setAttribute("aria-label", n + ", " + H.statustekst(n));
+  });
+  var html = H.par().filter(function (p) { return p[1]; }).map(function (p) {
+    var a = pos[p[0]], b = pos[p[1]], begge = S.boks[p[0]].forst && S.boks[p[1]].forst && S.med[p[0]] && S.med[p[1]];
+    return '<line class="par' + (begge ? "" : " halv") + '" x1="' + a.x + '" y1="' + a.y + '" x2="' + b.x + '" y2="' + b.y + '"/>';
+  }).join("");
+  if (lenker.dataset.h !== html) { lenker.innerHTML = html; lenker.dataset.h = html; }
+}
+
+function skudd(a, b, klasse) {
+  var l = el("line", { x1: a.x, y1: a.y, x2: b.x, y2: b.y, pathLength: 1, "class": "skudd " + klasse });
+  l.addEventListener("animationend", function () { l.remove(); });
+  spor.appendChild(l);
+}
+H.vedPuls(function (n) { if (!document.hidden) skudd(pos[n], M, "puls"); });
+H.vedHendelse(function (h) {
+  if (h.type === "online" || document.hidden) return;
+  var fra = h.fra === "HUB" ? M : pos[h.fra], klasse = h.type === "msg" ? "msg" : "tenn";
+  if (h.til === "ALLE") S.navn.forEach(function (n) { if (n !== h.fra && S.med[n]) skudd(fra, pos[n], klasse); });
+  else if (pos[h.til]) skudd(fra, pos[h.til], klasse);
+});
+
+H.ved(oppdater);
+oppdater();
+H.start();
+</script>

@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TeknaRadio Sjekkliste</title>
+<style>
+/* Utskriftsark A4. Tekna-profilen: Arial, mørk blå tekst, turkis bare som strek. Fungerer i svart-hvitt. */
+:root{
+  --ink:#111; --bla:#003847; --turkis:#00B3B3; --lys:#e8f6f6; --strek:#9aa5a8; --muted:#4a5559;
+}
+@page{size:A4;margin:14mm 15mm 16mm}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--ink);font-family:Arial,Helvetica,sans-serif;font-size:10.5pt;line-height:1.4}
+.ark{max-width:180mm;margin:0 auto}
+h1{font-size:24pt;line-height:1.2;margin:0;color:var(--bla)}
+h2{font-size:17pt;margin:0 0 2mm;color:var(--bla);line-height:1.2}
+h3{font-size:11.5pt;margin:5mm 0 1.5mm;color:var(--bla);break-after:avoid}
+p{margin:0 0 2mm}
+code,.kode{font-family:Menlo,Consolas,monospace;font-size:9.5pt}
+.leksjon{margin-top:7mm}
+.leksjon+.leksjon{break-before:page;margin-top:0}
+.topp{display:flex;justify-content:space-between;align-items:flex-start;gap:8mm;border-bottom:1.5pt solid var(--bla);padding-bottom:3mm;margin-bottom:4mm}
+.topp img{height:11mm}
+.under{color:var(--muted);font-size:10pt;margin-top:1mm}
+.lhode{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1.5pt solid var(--bla);padding-bottom:1.5mm;margin-bottom:3mm}
+.lhode span{color:var(--muted);font-size:9.5pt}
+
+/* Navn og kallenavn */
+.navnelinje{display:flex;gap:3mm;align-items:flex-end;margin:0 0 4mm}
+.navnelinje b{white-space:nowrap}
+.navnelinje i{flex:1;border-bottom:0.75pt solid var(--ink);height:7mm}
+.kallenavn{display:grid;grid-template-columns:1fr 1fr;gap:5mm;margin:0 0 4mm}
+.rute{border:1.5pt solid var(--bla);padding:2.5mm 3mm 3mm}
+.rute .nr{display:inline-block;background:var(--bla);color:#fff;font-weight:bold;padding:0.3mm 2mm;margin-right:2mm}
+.rute b{font-size:11pt}
+.rute .felt{height:15mm;border:0.75pt solid var(--strek);margin:2mm 0 1.5mm;background:repeating-linear-gradient(90deg,transparent 0 11mm,#eef1f1 11mm 11.3mm)}
+.rute small{display:block;color:var(--muted);font-size:9pt;line-height:1.3}
+
+/* Steg med avkrysning */
+ol.steg{list-style:none;margin:0 0 2mm;padding:0;counter-reset:s}
+ol.steg>li{position:relative;padding:1.2mm 0 1.2mm 13mm;border-bottom:0.5pt solid #dde3e3;counter-increment:s;break-inside:avoid}
+ol.steg>li::before{content:"";position:absolute;left:0;top:1.4mm;width:4mm;height:4mm;border:1pt solid var(--ink)}
+ol.steg>li::after{content:counter(s);position:absolute;left:5.5mm;top:1.3mm;font-weight:bold;color:var(--bla);font-size:9.5pt}
+ol.steg ul{margin:1mm 0 0;padding-left:4.5mm}
+ol.steg ul li{margin:0.5mm 0}
+.ser{display:block;color:var(--bla);margin-top:0.6mm}
+.ser::before{content:"Du ser: ";font-weight:bold}
+
+/* Merknader. Står foran steget de gjelder. */
+.obs{border:1pt solid var(--ink);padding:1.8mm 3mm;margin:1.5mm 0 2.5mm;break-inside:avoid}
+.obs b:first-child{text-transform:none}
+.forklaring{background:var(--lys);padding:2.5mm 3.5mm;margin:3mm 0;break-inside:avoid}
+.forklaring b:first-child{display:block;color:var(--bla);margin-bottom:0.8mm}
+
+/* Kode med ruter der navnet skal stå */
+pre{margin:1.5mm 0 1.5mm;background:#f2f4f4;border-left:0;padding:2.5mm 3.5mm;font-family:Menlo,Consolas,monospace;font-size:10pt;line-height:1.7;white-space:pre}
+.plass{display:inline-block;border:1pt dashed var(--bla);padding:0 1.5mm;font-family:Arial,sans-serif;font-size:8.5pt;color:var(--bla);vertical-align:1px}
+
+table{border-collapse:collapse;width:100%;margin:1.5mm 0 3mm;break-inside:avoid;font-size:9.8pt}
+th,td{border:0.75pt solid var(--strek);padding:1.4mm 2.2mm;text-align:left;vertical-align:top}
+th{background:var(--lys);color:var(--bla)}
+td.t{font-family:Menlo,Consolas,monospace;font-weight:bold;white-space:nowrap}
+
+.montering{display:grid;grid-template-columns:52mm 1fr;gap:5mm;align-items:start}
+.montering img{width:100%;max-width:72mm;display:block}
+.bilde{margin:2mm 0 1mm;break-inside:avoid}
+.bilde img{width:100%;display:block;border:0.5pt solid #ddd}
+h3.ny-side{break-before:page;margin-top:0}
+.bilde figcaption{font-size:9pt;color:var(--muted);margin-top:1mm}
+
+/* Refleksjon */
+.sporsmal{break-inside:avoid;margin:0 0 4mm}
+.sporsmal p{margin-bottom:1mm}
+.linjer{height:21mm;background:repeating-linear-gradient(to bottom,transparent 0 6.6mm,var(--strek) 6.6mm 6.9mm)}
+.spa{display:flex;gap:3mm;align-items:flex-end;margin:1.5mm 0 0}
+.spa i{flex:1;border-bottom:0.75pt solid var(--ink);height:6mm}
+
+.ferdig{margin-top:4mm;font-weight:bold;color:var(--bla)}
+@media screen{body{padding:12mm 0;background:#f4f5f5}.ark{background:#fff;padding:14mm 15mm}}
+</style>
+</head>
+<body>
+<div class="ark">
+
+<header class="topp">
+  <div>
+    <h1>Bygg din egen nødradio</h1>
+    <div class="under">TeknaRadio · Sjekkliste for deltakere · Leksjon 1 til 3</div>
+  </div>
+  <img src="../../HubWeb/Logo/Tekna_logo_Kompakt_Mørk_blå_RGB.svg" alt="Tekna">
+</header>
+
+<div class="navnelinje"><b>Navn:</b><i></i></div>
+
+<p><b>Kallenavn.</b> Boksen din har et kallenavn. Radioen bruker kallenavnet til å finne riktig mottaker. Du skriver de to kallenavnene inn i koden i Leksjon 1 og i Leksjon 2.</p>
+
+<div class="kallenavn">
+  <div class="rute">
+    <span class="nr">1</span><b>Mitt kallenavn</b>
+    <div class="felt"></div>
+    <small>Står på lappen du får av kursholderen.</small>
+  </div>
+  <div class="rute">
+    <span class="nr">2</span><b>Partnerens kallenavn</b>
+    <div class="felt"></div>
+    <small>Finn personen du skal snakke med. Spør om kallenavnet på lappen deres.</small>
+  </div>
+</div>
+
+<div class="obs"><b>Store bokstaver.</b> Skriv kallenavnet med store bokstaver og én bokstav i hver rute. Da er det lett å skrive det riktig inn i koden.</div>
+
+<p><b>Slik bruker du arket.</b> Gjør stegene i rekkefølge. Sett et kryss i ruten når steget er gjort. Linjen «Du ser» forteller hva som skal skje. Ser du noe annet, se tabellen etter steget.</p>
+
+<table>
+  <tr><th>Leksjon</th><th>Du gjør</th><th>Tid</th></tr>
+  <tr><td>1. Bygg og test</td><td>Kobler radio, <i>buzzer</i> og knapper. Tenner skjermen til partneren.</td><td>ca. 50 min</td></tr>
+  <tr><td>2. Snakk sammen</td><td>Kobler potmeteret. Sender tekst fra PC-en.</td><td>ca. 25 min</td></tr>
+  <tr><td>3. Uten PC</td><td>Skriver og sender tekst med potmeteret og knappene.</td><td>ca. 25 min</td></tr>
+</table>
+
+<!-- ═════════════ LEKSJON 1 ═════════════ -->
+<section class="leksjon">
+  <div class="lhode"><h2>Leksjon 1: Bygg og test</h2><span>Kodefil: <code>Leksjon1_RadioTest.ino</code></span></div>
+
+  <h3>1A. Monter boksen</h3>
+  <ol class="steg">
+    <li>Sett Arduinoen i boksen. Fest den med T-pluggene.</li>
+    <li>Sett koblingsbrettet (breadboard) i boksen. Snu det slik at den blå linjen er nederst.</li>
+    <li>Sett radioen (NRF24L01) i adapteren (HW-200).</li>
+  </ol>
+  <div class="obs"><b>Tips:</b> Koble de sju kablene til adapteren før du setter adapteren i antenneholderen.</div>
+  <ol class="steg" style="counter-reset:s 3">
+    <li>Sett adapteren i antenneholderen.</li>
+  </ol>
+
+  <h3>1B. Koble radioen</h3>
+  <div class="montering">
+    <table style="margin:0">
+      <tr><th>Adapter</th><th>Arduino</th></tr>
+      <tr><td>VCC</td><td>5V</td></tr>
+      <tr><td>GND</td><td>GND</td></tr>
+      <tr><td>CE</td><td>Pin 9</td></tr>
+      <tr><td>CSN</td><td>Pin 10</td></tr>
+      <tr><td>SCK</td><td>Pin 13</td></tr>
+      <tr><td>MISO</td><td>Pin 12</td></tr>
+      <tr><td>MOSI</td><td>Pin 11</td></tr>
+      <tr><td>IRQ</td><td>Ikke i bruk</td></tr>
+    </table>
+    <div>
+      <img src="../../Leksjon1/assets/adapter.png" alt="Adapteren HW-200 med navn på hver pinne">
+      <ol class="steg" style="margin-top:2mm">
+        <li>Koble de sju kablene fra adapteren til Arduinoen. Bruk tabellen.</li>
+        <li>Sjekk hver kabel en gang til mot tabellen.</li>
+      </ol>
+    </div>
+  </div>
+
+  <h3>1C. Koble <i>buzzer</i> og knapper</h3>
+  <div class="obs"><b>Bildet</b> viser en eldre Arduino. Pinnene har de samme navnene.</div>
+  <figure class="bilde"><img src="../../Leksjon1/assets/Skjermbilde 2026-06-09 kl. 17.34.50-1.png" alt="Koblingsbrett med buzzer, to knapper og potmeter koblet til Arduino"></figure>
+  <ol class="steg">
+    <li>Koble GND fra Arduinoen til den blå linjen på koblingsbrettet.</li>
+    <li>Koble <i>buzzeren</i>: + til <b>pin 3</b>, − til den blå linjen (GND).</li>
+    <li>Koble Knapp A: ett ben til <b>pin 2</b>, det andre benet til GND.</li>
+    <li>Koble Knapp B: ett ben til <b>pin 4</b>, det andre benet til GND.</li>
+    <li>Potmeteret (den vridbare med grønn ledning på bildet) kan du vente med til Leksjon 2.</li>
+    <li>Koble USB-kabelen fra Arduinoen til PC-en.</li>
+  </ol>
+
+  <h3 class="ny-side">1D. Hent koden</h3>
+  <ol class="steg">
+    <li>Gå til <b>github.com/Vgsjovik/TeknaRadio</b>.</li>
+    <li>Klikk <b>Code</b>, og så <b>Download ZIP</b>. Pakk ut ZIP-filen.</li>
+    <li>Åpne <code>Leksjon1/Leksjon1_RadioTest/Leksjon1_RadioTest.ino</code> i Arduino IDE.</li>
+    <li>Velg kort: <b>Tools → Board → Arduino UNO R4 WiFi</b>.
+      <ul><li>Finner du ikke kortet? Installer <b>Arduino UNO R4 Boards</b> i <b>Tools → Board → Boards Manager</b>.</li></ul></li>
+    <li>Velg port: <b>Tools → Port</b>. Porten heter <code>/dev/cu.usbmodem…</code> på Mac.</li>
+    <li>Installer to biblioteker. Gå til <b>Tools → Manage Libraries</b>. Søk opp hvert navn og klikk <b>Install</b>:
+      <ul><li><b>RF24</b> (av TMRh20)</li><li><b>ArduinoGraphics</b></li></ul></li>
+  </ol>
+
+  <h3>1E. Skriv inn kallenavnene</h3>
+  <p>Øverst i koden står disse to linjene:</p>
+  <pre>#define KALLENAVN "ALFA"
+#define PARTNER   "BRAVO"</pre>
+  <div class="obs"><b>ALFA og BRAVO er bare eksempler.</b> Ingen boks heter det. Boksen virker ikke før du bytter dem.</div>
+  <ol class="steg">
+    <li>Bytt <code>ALFA</code> med kallenavnet i rute 1.</li>
+    <li>Bytt <code>BRAVO</code> med kallenavnet i rute 2.</li>
+    <li>Sjekk at anførselstegnene står igjen. Linjene skal se slik ut:
+<pre>#define KALLENAVN "<span class="plass">rute 1</span>"
+#define PARTNER   "<span class="plass">rute 2</span>"</pre>
+      Store og små bokstaver gir samme resultat.</li>
+    <li>Klikk <b>Upload</b> (pilen øverst til venstre).
+      <span class="ser">«Done uploading» nederst i Arduino IDE. Ingen røde feilmeldinger.</span></li>
+  </ol>
+
+  <h3>1F. Sjekk oppstarten</h3>
+  <p>Boksen tester seg selv hver gang den starter. Trykk <b>reset</b> for å se testen en gang til. Reset-knappen er den hvite, flate knappen ved USB-kontakten.</p>
+  <ol class="steg">
+    <li>Se på skjermen på boksen.
+      <span class="ser"><b>V</b> og 1 pip. Radioen svarer.</span>
+      <span class="ser"><b>K</b> og 2 pip. HUB hører deg.</span></li>
+    <li>Se på tavla.
+      <span class="ser">En hake ved kallenavnet ditt under «HUB hører deg».</span></li>
+    <li>Åpne <b>Tools → Serial Monitor</b>. Velg <b>9600 baud</b>.
+      <span class="ser">«Kallenavn:» og «Partner:» med navnene fra rute 1 og 2.</span></li>
+    <li>Vent til partneren også har fått <b>K</b>. Se på tavla.
+      <span class="ser">En hake under «Godkjent kallenavn». Den kommer bare når dere har skrevet hverandres kallenavn.</span></li>
+  </ol>
+  <table>
+    <tr><th style="width:24%">Du ser</th><th style="width:26%">Betyr</th><th>Gjør dette</th></tr>
+    <tr><td class="t">X</td><td>Radioen svarer ikke.</td><td>Sjekk de sju kablene til radioen. Boksen prøver på nytt hvert sekund. Den viser <b>V</b> når kablene er riktige.</td></tr>
+    <tr><td><span class="t">?</span> og 3 pip</td><td>HUB hører deg ikke.</td><td>Si fra til kursholderen. Knappene virker likevel.</td></tr>
+    <tr><td><span class="t">NAVN?</span> ruller</td><td>Kallenavnet finnes ikke, eller de to kallenavnene er like.</td><td>Sjekk 1E. Serial Monitor viser alle gyldige kallenavn.</td></tr>
+    <tr><td>Rød feil om <code>ArduinoGraphics.h</code></td><td>Biblioteket mangler.</td><td>Installer ArduinoGraphics (1D, steg 6).</td></tr>
+    <tr><td>Ingen hake under «Godkjent kallenavn»</td><td>Ett av kallenavnene i koden er feil.</td><td>Sammenlign «Partner:» i Serial Monitor hos deg og hos partneren.</td></tr>
+  </table>
+
+  <h3>1G. Bruk knappene</h3>
+  <ol class="steg">
+    <li>Trykk <b>Knapp A</b>.
+      <span class="ser">Hos deg: et kort klikk. Hos partneren: hele skjermen lyser, og <i>buzzeren</i> spiller en stigende melodi.</span></li>
+    <li>Trykk <b>Knapp B</b>.
+      <span class="ser">Skjermen hos partneren slukker. <i>Buzzeren</i> spiller en synkende melodi.</span></li>
+    <li>La partneren tenne og slukke skjermen din.</li>
+    <li>Trykk Knapp A og Knapp B mens du ser på tavla. Skriv ned hva tavla viser:
+      <div class="spa"><i></i></div></li>
+  </ol>
+
+  <div class="forklaring"><b>Slik virker det</b>
+    Ved oppstart sender boksen en melding til HUB. Bare HUB lytter på den adressen. HUB svarer automatisk med en kvittering (ACK). Kvitteringen gir <b>K</b>. Knapp A sender på en felles adresse. Alle bokser hører meldingen, men ingen svarer.</div>
+
+  <h3>Spørsmål</h3>
+  <div class="sporsmal">
+    <p>Boksen viste <b>K</b> fordi HUB sendte en kvittering. Fikk du en kvittering da du tente skjermen til partneren? Hvordan vet du at partneren fikk beskjeden?</p>
+    <div class="linjer"></div>
+  </div>
+</section>
+
+<!-- ═════════════ LEKSJON 2 ═════════════ -->
+<section class="leksjon">
+  <div class="lhode"><h2>Leksjon 2: Snakk sammen</h2><span>Kodefil: <code>Leksjon2_Nodradio.ino</code></span></div>
+  <p>Alt fra Leksjon 1 blir stående. I denne leksjonen kobler du potmeteret og laster opp en ny kodefil. Du bruker den samme filen i Leksjon 3.</p>
+
+  <h3>2A. Koble potmeteret</h3>
+  <ol class="steg">
+    <li>Koble midtbenet på potmeteret til <b>pin A0</b>.</li>
+    <li>Koble det høyre benet til <b>5V</b>.</li>
+    <li>Koble det venstre benet til <b>GND</b>.</li>
+  </ol>
+
+  <h3>2B. Last opp den nye koden</h3>
+  <ol class="steg">
+    <li>Åpne <code>Leksjon2/Leksjon2_Nodradio/Leksjon2_Nodradio.ino</code> fra den samme ZIP-filen.</li>
+  </ol>
+  <div class="obs"><b>Ny fil, samme kallenavn.</b> Den nye filen har ALFA og BRAVO igjen. Skriv de samme kallenavnene som i Leksjon 1.</div>
+  <ol class="steg" style="counter-reset:s 1">
+    <li>Bytt <code>ALFA</code> med kallenavnet i rute 1. Bytt <code>BRAVO</code> med kallenavnet i rute 2.
+<pre>#define KALLENAVN "<span class="plass">rute 1</span>"
+#define PARTNER   "<span class="plass">rute 2</span>"</pre></li>
+    <li>Klikk <b>Upload</b>.
+      <span class="ser"><b>V</b>, så <b>K</b> på skjermen. Så <code>__</code> og ett tegn til høyre.</span></li>
+    <li>Åpne Serial Monitor. Velg <b>9600 baud</b> og <b>New Line</b>.
+      <span class="ser">«Kallenavn:» og «Partner:». Trykk reset hvis Serial Monitor er tom.</span></li>
+  </ol>
+
+  <h3>2C. Send en melding</h3>
+  <ol class="steg">
+    <li>Skriv <code>Hvordan går det?</code> i feltet øverst i Serial Monitor. Trykk Enter.
+      <span class="ser">1 pip og «[Sendt til …]» i Serial Monitor.</span></li>
+    <li>Spør partneren hva skjermen viser.
+      <span class="ser">Hos partneren: 1 pip, og meldingen ruller over skjermen med kallenavnet ditt foran.</span></li>
+    <li>Se på fanen «Samtaler» på tavla.
+      <span class="ser">Kallenavnet ditt, «til», kallenavnet til partneren, og teksten.</span></li>
+    <li>Vent på svar fra partneren.
+      <span class="ser">Svaret ruller over skjermen din.</span></li>
+    <li>Trykk <b>Knapp B</b> for å se den siste meldingen en gang til.</li>
+  </ol>
+  <div class="obs"><b>Knapp A legger til et tegn.</b> Har du trykket Knapp A, sender Knapp B tegnene i stedet for å vise den siste meldingen. Det er Leksjon 3.</div>
+
+  <h3>2D. Prøv dette</h3>
+  <ol class="steg">
+    <li>Skriv en melding med mer enn 28 tegn. Send den. Hva skjer?
+      <div class="spa"><i></i></div></li>
+    <li>Før du sender: hvem tror du får meldingen <code>@alle Hei fra meg</code>?
+      <div class="spa"><i></i></div>
+      Send meldingen. Hadde du rett?</li>
+    <li>Skriv <code>@</code> og kallenavnet til en annen boks enn partneren. Skriv så en melding. Send den. Kom den fram?</li>
+  </ol>
+  <table>
+    <tr><th style="width:24%">Du ser</th><th style="width:26%">Betyr</th><th>Gjør dette</th></tr>
+    <tr><td class="t">N</td><td>Kallenavnet finnes ikke, eller de to kallenavnene er like.</td><td>Sjekk 2B. Serial Monitor viser alle gyldige kallenavn.</td></tr>
+    <tr><td>Ingenting skjer når du trykker Enter</td><td>Serial Monitor sender ikke linjeskift.</td><td>Velg <b>New Line</b> i menyen i Serial Monitor.</td></tr>
+    <tr><td>Tegn som skifter av seg selv</td><td>Potmeteret er ikke koblet riktig.</td><td>Sjekk 2A. Midtbenet skal gå til A0.</td></tr>
+    <tr><td><span class="t">?</span> og 3 pip</td><td>HUB hører deg ikke.</td><td>Si fra til kursholderen. Meldingene virker likevel.</td></tr>
+  </table>
+
+  <div class="forklaring"><b>Slik virker det</b>
+    Alle bokser sender på den samme radiokanalen. Alle bokser hører alle meldinger. Hver melding inneholder kallenavnet til mottakeren. Boksen viser bare meldinger til sitt eget kallenavn, eller til alle.</div>
+
+  <h3>Spørsmål</h3>
+  <div class="sporsmal">
+    <p><b>1.</b> Alle bokser hører alle meldinger. Hvorfor viser ikke skjermen din meldingene til de andre?</p>
+    <div class="linjer"></div>
+  </div>
+  <div class="sporsmal">
+    <p><b>2.</b> Tavla viser alle meldingene i rommet. Hvem kan lese det du sender? Hva betyr det for en ekte nødradio?</p>
+    <div class="linjer"></div>
+  </div>
+</section>
+
+<!-- ═════════════ LEKSJON 3 ═════════════ -->
+<section class="leksjon">
+  <div class="lhode"><h2>Leksjon 3: Uten PC</h2><span>Kodefil: den samme som i Leksjon 2</span></div>
+  <p>Du laster ikke opp ny kode. Boksen virker uten PC. Du skriver med potmeteret og knappene.</p>
+
+  <h3>3A. Slik skriver du</h3>
+  <p>Skjermen viser tre tegn: de to siste tegnene i meldingen din, og tegnet potmeteret står på (lengst til høyre). Et mellomrom vises som <code>_</code>.</p>
+  <table>
+    <tr><th style="width:38%">Du gjør</th><th>Boksen gjør</th></tr>
+    <tr><td>Drei potmeteret</td><td>Tegnet lengst til høyre skifter.</td></tr>
+    <tr><td>Trykk <b>Knapp A</b></td><td>Legger tegnet til i meldingen. 1 pip.</td></tr>
+    <tr><td>Drei til tegnet <code>&lt;</code> og trykk <b>Knapp A</b></td><td>Sletter det siste tegnet. En dyp tone.</td></tr>
+    <tr><td>Trykk <b>Knapp B</b></td><td>Sender meldingen til partneren. Viser <b>&gt;</b> og gir 2 pip.</td></tr>
+    <tr><td>Trykk <b>Knapp B</b> uten å skrive noe</td><td>Viser den siste mottatte meldingen en gang til.</td></tr>
+    <tr><td>Vent i 5 sekunder</td><td>Hele meldingen din ruller over skjermen.</td></tr>
+  </table>
+  <p>Potmeteret har tegnene i denne rekkefølgen: <code>&lt;</code>, A til Z, mellomrom, 1 til 9, mellomrom. En melding har maks 28 tegn.</p>
+
+  <h3>3B. Test</h3>
+  <ol class="steg">
+    <li>Drei potmeteret sakte fra den ene enden til den andre.
+      <span class="ser">Tegnet lengst til høyre går gjennom alle tegnene.</span></li>
+    <li>Skriv <code>HEI</code> med potmeteret og Knapp A.</li>
+    <li>Legg til ett tegn for mye. Slett det med <code>&lt;</code>.</li>
+    <li>Trykk Knapp B.
+      <span class="ser"><b>&gt;</b> og 2 pip. Meldingen ruller hos partneren og står på tavla.</span></li>
+    <li>Vent på svar fra partneren. Trykk Knapp B for å se svaret en gang til.</li>
+  </ol>
+  <div class="obs"><b>Koden ligger i Arduinoen.</b> Den starter av seg selv når boksen får strøm. Du trenger ikke PC-en mer.</div>
+  <ol class="steg" style="counter-reset:s 5">
+    <li>Koble USB-kabelen fra PC-en. Koble den til en powerbank eller en USB-lader.
+      <span class="ser"><b>V</b> og <b>K</b>, så skrivevisningen. Alt virker som før.</span></li>
+    <li>Send en melding til partneren uten PC.</li>
+  </ol>
+
+  <div class="forklaring"><b>Slik virker det</b>
+    Potmeteret gir Arduinoen et tall fra 0 til 1023. Koden deler tallene mellom tegnene. Et vanlig tegn får et stort område. Et sjeldent tegn får et lite område.</div>
+
+  <h3>Spørsmål</h3>
+  <div class="sporsmal">
+    <p><b>1.</b> Noen bokstaver er lette å treffe med potmeteret. Andre er vanskelige. Hvilke er lette? Hvorfor er koden laget slik?</p>
+    <div class="linjer"></div>
+  </div>
+  <div class="sporsmal">
+    <p><b>2.</b> Hvor kan en radio som denne være nyttig?</p>
+    <div class="linjer"></div>
+  </div>
+  <div class="sporsmal">
+    <p><b>3.</b> Du kan koble mange typer sensorer til en Arduino. Hva slags informasjon kan være nyttig å sende trådløst fra en enhet til en annen?</p>
+    <div class="linjer"></div>
+  </div>
+
+  <h3>Hva betyr tegnet på skjermen?</h3>
+  <table>
+    <tr><th style="width:24%">Skjermen</th><th style="width:16%">Lyd</th><th>Betyr</th></tr>
+    <tr><td class="t">V</td><td>1 pip</td><td>Radioen svarer.</td></tr>
+    <tr><td class="t">X</td><td>2 pip</td><td>Radioen svarer ikke. Sjekk kablene.</td></tr>
+    <tr><td class="t">K</td><td>2 pip</td><td>HUB hører deg.</td></tr>
+    <tr><td class="t">?</td><td>3 pip</td><td>HUB hører deg ikke.</td></tr>
+    <tr><td><span class="t">NAVN?</span> eller <span class="t">N</span></td><td>2 pip</td><td>Kallenavnet i koden er feil.</td></tr>
+    <tr><td>Hele skjermen lyser</td><td>Stigende melodi</td><td>Partneren tente skjermen din (Leksjon 1).</td></tr>
+    <tr><td class="t">&gt;</td><td>2 pip</td><td>Meldingen er sendt. Ingen kvitterer, så du vet ikke om den kom fram.</td></tr>
+    <tr><td>Tekst som ruller</td><td>1 pip</td><td>En melding til deg.</td></tr>
+  </table>
+
+  <p class="ferdig">Ferdig. Bra jobba!</p>
+</section>
+
+</div>
+</body>
+</html>

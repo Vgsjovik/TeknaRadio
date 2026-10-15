@@ -1,0 +1,164 @@
+<title>TeknaRadio Hub Sist hørt</title>
+<link rel="stylesheet" href="hub-base.css">
+<style>
+/* Sist hørt: det siste huben hørte, eier skjermen. Alle navnene står i én rekke nederst, par ved par. */
+#vis-tavle{display:grid;grid-template-rows:minmax(0,1fr) auto}
+.scene{display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,400px);min-height:0}
+
+.stor{display:flex;flex-direction:column;justify-content:center;gap:18px;padding-block:28px;padding-inline:var(--marg);min-width:0;background:var(--lysbla)}
+.stor[data-type="tenn"]{background:var(--gul)}
+.stor[data-type="slukk"]{background:var(--hvit)}
+.stor[data-type="online"]{background:var(--gronn)}
+.stor .hvem{font-size:clamp(28px,3.4vw,56px);font-weight:700;letter-spacing:-.01em}
+.stor .ord{font-weight:700;line-height:1;letter-spacing:-.03em;overflow-wrap:anywhere;font-size:clamp(48px,6.4vw,104px)}
+.stor .ord[data-l="kort"]{font-size:clamp(64px,10vw,168px)}
+.stor .ord[data-l="lang"]{font-size:clamp(40px,5vw,82px)}
+.stor .ord .o{display:inline-block;white-space:pre}
+.stor .ord .t{display:inline-block;animation:land .4s cubic-bezier(.16,1,.3,1) backwards;animation-delay:calc(var(--i) * 38ms)}
+.stor .nar{font-size:22px;font-variant-numeric:tabular-nums;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.stor .merke{font-size:20px;background:var(--hvit)}
+@keyframes land{from{opacity:0;transform:translateY(.22em)}}
+@media (prefers-reduced-motion:reduce){.stor .ord .t{animation:none}}
+
+.for{padding-block:24px;padding-inline:32px var(--marg);display:flex;flex-direction:column;gap:18px;min-height:0}
+.valg{border:0;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:0}
+.valg legend{font-size:15px;font-weight:700;padding:0 0 4px}
+.valg label{font-weight:700;font-size:18px;padding:8px 14px;border:2px solid var(--morkbla);margin-right:-2px;cursor:pointer}
+.valg label:hover{background:var(--lysbla)}
+.valg input{position:absolute;opacity:0;pointer-events:none}
+.valg label:has(input:checked){background:var(--morkbla);color:var(--hvit)}
+.valg label:has(input:focus-visible){outline:3px solid var(--morkbla);outline-offset:3px}
+.for h2{font-size:22px}
+.for ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px;overflow:auto;min-height:0}
+.for .hvem{display:block;font-weight:700;font-size:18px}
+.for .tekst{display:block;font-size:24px;line-height:1.15;overflow-wrap:anywhere}
+.for time{font-size:15px;color:var(--dempet);font-variant-numeric:tabular-nums;font-weight:400;margin-left:8px}
+
+.rekkeboks{padding-block:14px 18px;padding-inline:var(--marg);display:flex;flex-direction:column;gap:10px}
+.rekkehode{display:flex;flex-wrap:wrap;align-items:center;gap:8px 20px;font-size:18px;min-height:40px}
+.rekkehode button{font-weight:700;font-size:18px;padding:6px 14px;border:2px solid var(--morkbla);background:var(--hvit);cursor:pointer}
+.rekkehode button:hover{background:var(--lysbla)}
+.rekke{display:flex;gap:14px}
+.gruppe{flex:1;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:3px;min-width:0}
+.navn{text-align:left;padding:10px 12px 12px;border:2px solid var(--morkbla);background:var(--hvit);cursor:pointer;display:flex;flex-direction:column;gap:2px;min-width:0}
+.navn b{font-size:clamp(20px,1.85vw,34px);line-height:1;letter-spacing:-.01em}
+.navn span{font-size:15px;line-height:1.1}
+.navn[data-s="nett"]{background:var(--gronn)}
+.navn[data-s="tent"]{background:var(--gul);border-width:5px;padding:7px 9px 9px}
+.navn[data-s="borte"]{border-color:var(--rod);border-width:5px;padding:7px 9px 9px}
+.navn[data-s="venter"]{border:2px dashed var(--strek);color:var(--dempet)}
+.navn[data-s="fri"]{border-color:transparent;color:var(--dempet)}
+.navn:hover{box-shadow:inset 0 -6px 0 var(--morkbla)}
+.gruppe[data-valgt="true"]{outline:4px solid var(--morkbla);outline-offset:3px}
+
+@media (max-width:900px){
+  .scene{grid-template-columns:minmax(0,1fr)}
+  .stor{min-height:50vh}
+  .for{padding-inline:var(--marg)}
+  .rekke{flex-wrap:wrap}
+  .gruppe{flex:1 1 100%}
+}
+</style>
+
+<div class="app">
+  <header id="topp"></header>
+  <main>
+    <section id="vis-tavle">
+      <div class="scene">
+        <div class="stor" id="stor" aria-live="polite"></div>
+        <aside class="for">
+          <fieldset class="valg" id="valg">
+            <legend>Vis</legend>
+            <label><input type="radio" name="type" id="type-alt" value="" checked>Alt</label>
+            <label><input type="radio" name="type" id="type-msg" value="msg">Meldinger</label>
+            <label><input type="radio" name="type" id="type-skjerm" value="skjerm">Skjerm</label>
+          </fieldset>
+          <h2>Tidligere</h2>
+          <ol id="for"></ol>
+        </aside>
+      </div>
+      <div class="rekkeboks">
+        <div class="rekkehode" id="rekkehode"></div>
+        <div class="rekke" id="rekke"></div>
+      </div>
+    </section>
+    <section id="vis-signal" class="signal" hidden>
+      <h2>Signalvei</h2>
+      <p>Her kommer forklaringen av hvordan en melding går fra én boks, gjennom lufta og fram til partneren. Skissen finnes fra før og flyttes inn i denne fanen.</p>
+      <p><a href="https://claude.ai/artifact/JL7PcXTJ9EPd4gHdjxRsPw">Åpne skissen av Signalvei</a></p>
+    </section>
+  </main>
+  <footer id="bunn"></footer>
+</div>
+
+<script src="hub-sim.js" charset="utf-8"></script>
+<script>
+var H = Hub, S = H.S, valgt = null, vist = 0, forSig = "", rekkeSig = "";
+function $(id) { return document.getElementById(id); }
+
+H.skall([{ id: "tavle", navn: "Tavle" }, { id: "signal", navn: "Signalvei" }]);
+
+function utvalg() {
+  var type = document.querySelector("#valg input:checked").value;
+  return S.hendelser.filter(function (h) {
+    if (type === "msg" && h.type !== "msg") return false;
+    if (type === "skjerm" && h.type !== "tenn" && h.type !== "slukk") return false;
+    return !valgt || H.forhold(h, valgt);
+  });
+}
+
+function stor(h) {
+  var e = $("stor");
+  if (!h) { e.dataset.type = "slukk"; e.innerHTML = '<p class="hvem">Ingenting hørt ennå</p>'; return; }
+  var ord = h.type === "msg" ? h.tekst : h.type === "tenn" ? "Skjerm tent" : h.type === "slukk" ? "Skjerm slukket" : "På nett";
+  var hvem = h.type === "online" ? h.fra : h.fra + " til " + (h.til === "ALLE" ? "alle" : h.til);
+  var i = 0, html = ord.split(" ").map(function (o) {
+    return '<span class="o">' + o.split("").map(function (t) { return '<span class="t" style="--i:' + (i++) + '">' + H.esc(t) + "</span>"; }).join("") + " </span>";
+  }).join("");
+  e.dataset.type = h.type;
+  e.innerHTML = '<p class="hvem">' + hvem + '</p><p class="ord" data-l="' + (ord.length <= 9 ? "kort" : ord.length > 18 ? "lang" : "") + '">' + html +
+    '</p><p class="nar">' + H.kl(h.t) + H.merke(h) + "</p>";
+}
+
+function tegn() {
+  var u = utvalg(), topp = u[0];
+  if ((topp ? topp.id : -1) !== vist) { vist = topp ? topp.id : -1; stor(topp); }
+
+  var sig = u.slice(1, 8).map(function (h) { return h.id; }).join();
+  if (sig !== forSig) {
+    forSig = sig;
+    $("for").innerHTML = u.slice(1, 8).map(function (h) {
+      var s = H.setning(h);
+      return '<li><span class="hvem">' + s.hvem + H.merke(h) + "<time>" + H.kl(h.t) + "</time></span>" + (s.tekst ? '<span class="tekst">' + H.esc(s.tekst) + "</span>" : "") + "</li>";
+    }).join("");
+  }
+
+  var pr = H.par(), html = pr.map(function (p) {
+    var er = valgt && valgt[0] === p[0];
+    return '<div class="gruppe" data-valgt="' + !!er + '">' + p.filter(Boolean).map(function (n) {
+      return '<button class="navn" data-n="' + n + '" data-s="' + H.status(n) + '" aria-pressed="' + !!er + '"><b>' + n + "</b><span>" + H.statustekst(n) + "</span></button>";
+    }).join("") + "</div>";
+  }).join("");
+  if (html !== rekkeSig) {
+    rekkeSig = html;
+    $("rekke").innerHTML = html;
+    $("rekkehode").innerHTML = valgt
+      ? "<span>Viser bare <b>" + valgt.filter(Boolean).join(" og ") + '</b></span><button id="visalt">Vis alle</button>'
+      : "<span>Klikk på et navn for å se bare det paret.</span>";
+  }
+}
+
+$("rekke").onclick = function (e) {
+  var k = e.target.closest(".navn");
+  if (!k) return;
+  var p = H.parTil(k.dataset.n);
+  valgt = valgt && p && valgt[0] === p[0] ? null : p;
+  tegn();
+};
+$("rekkehode").onclick = function (e) { if (e.target.id === "visalt") { valgt = null; tegn(); } };
+$("valg").onchange = tegn;
+
+H.ved(tegn);
+tegn();
+H.start();
+</script>

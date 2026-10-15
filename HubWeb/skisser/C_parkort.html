@@ -1,0 +1,76 @@
+<title>Hub Skisse C Parkort</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;600&display=swap">
+<style>
+/* C: seks kolonner, én per par. Hver kolonne har status øverst og samtalen under. Leksjon 1 skjuler samtalene og gjør navnene store. */
+:root{--bg:#f6f4f0;--fg:#1a1d21;--muted:#666a70;--line:#d6d2ca;--card:#fff;--a:#0b6e4f;--b:#8f2d56;--lit:#e8590c;--off:#a7a49c;--ack:#1c64b5;
+--display:'Barlow Condensed','Arial Narrow',sans-serif;--body:'Barlow','Helvetica Neue',Arial,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15171a;--fg:#f0eee8;--muted:#a3a49f;--line:#33363b;--card:#1d2024;--a:#4fd1a1;--b:#f08ab4;--lit:#ff9248;--off:#5d6066;--ack:#74b0f5;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#15171a;--fg:#f0eee8;--muted:#a3a49f;--line:#33363b;--card:#1d2024;--a:#4fd1a1;--b:#f08ab4;--lit:#ff9248;--off:#5d6066;--ack:#74b0f5;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:20px;margin:0}
+.wrap{padding-inline:20px;padding-block:16px 28px;display:flex;flex-direction:column;gap:16px}
+header{display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center}
+h1{font-family:var(--display);font-size:36px;margin:0;font-weight:700;letter-spacing:.01em}
+.seg{display:flex;gap:4px;margin-left:auto}
+.seg button{font-family:var(--display);font-weight:600;font-size:24px;padding:6px 20px;background:none;color:var(--muted);border:0;border-bottom:4px solid transparent;cursor:pointer}
+.seg button[aria-pressed="true"]{color:var(--fg);border-bottom-color:var(--fg)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--ack);outline-offset:2px}
+.board{display:grid;grid-template-columns:200px repeat(6,minmax(210px,1fr));gap:0;overflow-x:auto;border-top:2px solid var(--fg);align-items:stretch}
+.lane{border-right:1px solid var(--line);padding:12px 12px 14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.lane:last-child{border-right:0}
+.lane.all{background:var(--card)}
+.head{display:flex;flex-direction:column;gap:2px}
+.who{display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:700;font-size:40px;line-height:1.05}
+.who.a{color:var(--a)}.who.b{color:var(--b)}
+.who i{width:16px;height:16px;flex:none;background:currentColor}
+.who.lit i{background:var(--lit);outline:3px solid var(--lit);outline-offset:2px}
+.who.off{color:var(--off)}.who.off i{background:none;border:2px solid var(--off)}
+.who small{font-family:var(--body);font-weight:400;font-size:15px;color:var(--muted);margin-left:auto}
+.lit-note{font-size:15px;font-weight:600;color:var(--lit);min-height:20px}
+.bub{display:flex;flex-direction:column;gap:8px}
+.bub p{margin:0;padding:8px 10px;border-left:5px solid var(--a);background:var(--card);font-size:20px;overflow-wrap:anywhere}
+.bub p.b{border-left-color:var(--b)}
+.bub p.x{border-left-color:var(--muted);background:none;border:1.5px dashed var(--line);border-left:5px dashed var(--muted)}
+.bub small{display:block;font-size:14px;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.big .bub{display:none}
+.big .who{font-size:64px}
+.big .head{padding-block:30px}
+.send{display:flex;flex-wrap:wrap;gap:8px}
+.send select,.send input{font:inherit;font-size:20px;padding:9px 12px;background:var(--card);color:var(--fg);border:2px solid var(--fg)}
+.send input{flex:1;min-width:180px}
+.send button{font-family:var(--display);font-weight:700;font-size:24px;padding:6px 26px;background:var(--fg);color:var(--bg);border:0;cursor:pointer}
+.sub{font-size:17px;color:var(--muted)}
+</style>
+<div class="wrap">
+<header>
+  <h1>TeknaRadio Hub</h1>
+  <span class="sub">10 av 12 på nett</span>
+  <div class="seg" id="seg">
+    <button aria-pressed="true">Meldinger</button><button aria-pressed="false">Leksjon 1</button><button aria-pressed="false">Signalvei</button>
+  </div>
+</header>
+<div class="board" id="board"></div>
+<form class="send" onsubmit="return false"><select id="to" aria-label="Til"></select><input placeholder="Skriv..." aria-label="Melding"><button>Send</button></form>
+<span class="sub">Streket ramme = melding fra et annet par. Kolonnen til venstre viser det som er sendt til alle.</span>
+</div>
+<script>
+var P=[["HAWK","JET"],["ICE","WOLF"],["ACE","PUMA"],["BOLT","ORCA"],["ION","FOX"],["LYNX","NOVA"]];
+var ST={HAWK:["lit",2],JET:["on",3],ICE:["on",1],WOLF:["on",4],ACE:["on",2],PUMA:["lit",5],BOLT:["on",3],ORCA:["off"],ION:["lit",1],FOX:["on",2],LYNX:["off"],NOVA:["on",9]};
+var MS=[["12:04:02","ACE","*","Vi har første melding!"],["12:04:55","JET","HAWK","Funker det?"],["12:05:20","HAWK","PUMA","Hvem er du sammen med?"],["12:05:44","ICE","WOLF","Kjører vi forsøk 2 nå"],["12:06:10","FOX","ION","Hei! Ser du denne?"]];
+var LIT={JET:"HAWK",ACE:"PUMA",FOX:"ION"};
+function $(i){return document.getElementById(i)}
+function who(n,c){var s=ST[n];return '<div class="who '+c+' '+s[0]+'"><i></i>'+n+'<small>'+(s[0]=="off"?"ikke med":s[0]=="lit"?"tent":s[1]+" s")+'</small></div>'}
+function note(p){var t=[];p.forEach(function(n,i){var o=p[1-i];if(LIT[o]==n)t.push(o+" har tent "+n)});return t.join(" · ")}
+function draw(big){
+ var h='<div class="lane all"><div class="head"><div class="who" style="color:var(--muted)">ALLE</div><div class="lit-note"></div></div><div class="bub">'+
+  MS.filter(function(m){return m[2]=="*"}).map(function(m){return '<p class="x"><small>'+m[0]+' '+m[1]+' til alle</small>'+m[3]+'</p>'}).join("")+'</div></div>';
+ P.forEach(function(p){
+  var b=MS.filter(function(m){return m[2]!="*"&&(p.indexOf(m[1])>-1||p.indexOf(m[2])>-1)}).map(function(m){
+   var inside=p.indexOf(m[1])>-1&&p.indexOf(m[2])>-1;
+   return '<p class="'+(inside?(m[1]==p[1]?"b":""):"x")+'"><small>'+m[0]+' '+m[1]+' → '+m[2]+(inside?"":" · utenfor paret")+'</small>'+m[3]+'</p>'}).join("");
+  h+='<div class="lane"><div class="head">'+who(p[0],"a")+who(p[1],"b")+'<div class="lit-note">'+note(p)+'</div></div><div class="bub">'+b+'</div></div>'});
+ $("board").className="board"+(big?" big":"");$("board").innerHTML=h}
+draw(false);
+$("to").innerHTML="<option>Til alle</option>"+P.flat().map(function(n){return "<option>Til "+n+"</option>"}).join("");
+$("seg").onclick=function(e){var i=[].indexOf.call($("seg").children,e.target);if(i<0)return;[].forEach.call($("seg").children,function(b){b.setAttribute("aria-pressed",b===e.target)});draw(i==1)};
+</script>

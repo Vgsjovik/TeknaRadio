@@ -1,0 +1,239 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nødradio Oppslag</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: teknisk oppslagsark. Smal innholdsfortegnelse til venstre, tabeller til høyre. */
+:root{
+  --bg:#fbfbf9; --fg:#1b1d1f; --muted:#5f6569; --line:#d5d8d6; --band:#f0f1ee;
+  --accent:#a61e4d; --ok:#2b8a3e;
+  --head:'IBM Plex Sans Condensed','Arial Narrow',sans-serif;
+  --body:'IBM Plex Sans','Helvetica Neue',Arial,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#141617; --fg:#e6e8e7; --muted:#9aa1a4; --line:#2e3335; --band:#1c1f21;
+  --accent:#ff8fb3; --ok:#69db7c; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#141617; --fg:#e6e8e7; --muted:#9aa1a4; --line:#2e3335; --band:#1c1f21;
+  --accent:#ff8fb3; --ok:#69db7c; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15.5px;line-height:1.5;margin:0}
+.wrap{max-width:1100px;margin:0 auto;padding-inline:20px;padding-block:28px 64px;display:grid;grid-template-columns:200px minmax(0,1fr);gap:40px}
+@media (max-width:760px){ .wrap{grid-template-columns:minmax(0,1fr);gap:20px} nav{position:static!important} }
+nav{position:sticky;top:calc(env(safe-area-inset-top,0px) + 20px);align-self:start;font-size:14px;display:flex;flex-direction:column;gap:2px}
+nav strong{font-family:var(--head);font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+nav a{color:var(--fg);text-decoration:none;padding:3px 0;border-bottom:1px solid transparent;align-self:flex-start}
+nav a:hover,nav a:focus-visible{border-bottom-color:var(--accent);outline:none}
+main{display:flex;flex-direction:column;gap:34px;min-width:0}
+h1,h2{font-family:var(--head);margin:0;text-wrap:balance;line-height:1.1}
+h1{font-size:clamp(30px,5vw,42px);font-weight:600}
+h2{font-size:22px;font-weight:600;padding-bottom:6px;border-bottom:2px solid var(--fg)}
+section{display:flex;flex-direction:column;gap:12px;min-width:0}
+p{margin:0;max-width:70ch}
+.muted{color:var(--muted)}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--accent)}
+code{font-family:var(--mono);font-size:.9em;background:var(--band);padding:1px 4px}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 10px;border-bottom:1px solid var(--line)}
+th{font-family:var(--head);font-weight:600;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--band);white-space:nowrap}
+td:first-child{font-weight:500}
+td.m,td .m{font-family:var(--mono);font-size:13px}
+.status{border:1px solid var(--line);padding:8px 12px;background:var(--band);font-size:14.5px}
+.bytes{display:grid;grid-template-columns:repeat(4,auto) 1fr;font-family:var(--mono);font-size:13px;border:1px solid var(--fg);width:max-content;max-width:100%}
+.bytes div{padding:8px 12px;border-right:1px solid var(--fg);display:flex;flex-direction:column;gap:2px}
+.bytes div:last-child{border-right:0}
+.bytes small{font-family:var(--body);font-size:11px;color:var(--muted)}
+ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:5px;max-width:72ch}
+</style>
+
+<div class="wrap">
+  <nav aria-label="Innhold">
+    <strong>Innhold</strong>
+    <a href="#oversikt">Leksjoner og filer</a>
+    <a href="#l1">Leksjon 1</a>
+    <a href="#l2">Leksjon 2</a>
+    <a href="#l3">Leksjon 3</a>
+    <a href="#skjerm">Skjerm og lyd</a>
+    <a href="#radio">Adresser og pakke</a>
+    <a href="#hub">Huben</a>
+    <a href="#tavle">Tavla og parene</a>
+    <a href="#feil">Feilsøking</a>
+    <a href="#tall">Grenser</a>
+  </nav>
+
+  <main>
+    <header>
+      <div class="eyebrow">TeknaRadio · oppslag</div>
+      <h1>Nødradioen: oppslag</h1>
+      <p class="muted" style="margin-top:8px">Alt systemet gjør, samlet i tabeller. Skrevet for den som leder workshopen.</p>
+    </header>
+
+    <p class="status">Beskriver koden per 15. oktober 2026. Skissene kompilerer, men er ikke kjørt på ekte bokser ennå. Tavla (HubWeb) er prøvd i demomodus, ikke mot ekte hub.</p>
+
+    <section id="oversikt">
+      <h2>Leksjoner og filer</h2>
+      <div class="tw"><table>
+        <tr><th>Leksjon</th><th>Fil</th><th>Kobles</th><th>Begrep</th><th>Tid</th></tr>
+        <tr><td>1. Bygg og test</td><td class="m">Leksjon1_RadioTest.ino</td><td>Radio, summer, Knapp A, Knapp B</td><td>Kvittering</td><td>ca. 50 min</td></tr>
+        <tr><td>2. Snakk sammen</td><td class="m">Leksjon2_Nodradio.ino</td><td>Potmeter i tillegg, før opplasting</td><td>Adresse</td><td>ca. 25 min</td></tr>
+        <tr><td>3. Uten PC</td><td class="m">samme fil, ingen ny opplasting</td><td>Ingenting nytt</td><td>Koding av tegn</td><td>ca. 25 min</td></tr>
+        <tr><td>Kursholderen</td><td class="m">Hub/Hub.ino</td><td>Radio</td><td></td><td></td></tr>
+      </table></div>
+      <p>Øverst i begge boksfilene settes to linjer: <code>#define KALLENAVN "FOX"</code> og <code>#define PARTNER "ION"</code>. Store og små bokstaver spiller ingen rolle. Navnene må finnes i navnelista og være ulike. I koden står <code>"ALFA"</code> og <code>"BRAVO"</code>, som bevisst ikke finnes i lista.</p>
+    </section>
+
+    <section id="l1">
+      <h2>Leksjon 1: Bygg og test</h2>
+      <div class="tw"><table>
+        <tr><th>Hendelse</th><th>Boksen</th><th>Tavla</th></tr>
+        <tr><td>Oppstart, radio</td><td><b>V</b> og 1 pip. Ved feil: <b>X</b> og 2 pip, og nytt forsøk hvert sekund til radioen svarer.</td><td></td></tr>
+        <tr><td>Oppstart, hub</td><td><b>K</b> og 2 pip når huben kvitterer. <b>?</b> og 3 pip hvis ikke.</td><td>Hake under «HUB hører deg». Når partneren også er hørt: hake under «Godkjent kallenavn».</td></tr>
+        <tr><td>Hvert 5. sekund</td><td>Sender livstegn. Viser K eller ? bare når kontakten endrer seg.</td><td>«på nett». Grått navn og «ikke på nett» etter ca. 15 s uten livstegn. Hakene blir stående.</td></tr>
+        <tr><td>Knapp A</td><td>Kort klikk.</td><td>Lyspære på grønn bunn ved partnerens navn. Hake og tall under «Tente partneren».</td></tr>
+        <tr><td>Knapp B</td><td>Kort klikk.</td><td>Lyspæra hos partneren blir borte.</td></tr>
+        <tr><td>Partneren trykker A</td><td>Hele skjermen tennes. Melodi opp.</td><td></td></tr>
+        <tr><td>Partneren trykker B</td><td>Skjermen slukkes. Melodi ned.</td><td></td></tr>
+        <tr><td>Kursholderen sender melding</td><td>1 pip. Teksten ruller. Boksen er opptatt til den har rullet ferdig.</td><td>Står i Samtaler, merket «fra HUB» eller «til alle».</td></tr>
+      </table></div>
+      <p class="muted">Kursholderens grep: dra ut strømmen til huben. Alle bokser viser «?» innen fem sekunder, og alle navn blir grå på tavla.</p>
+    </section>
+
+    <section id="l2">
+      <h2>Leksjon 2: Snakk sammen</h2>
+      <div class="tw"><table>
+        <tr><th>Hendelse</th><th>Boksen</th><th>Tavla</th></tr>
+        <tr><td>Oppstart</td><td>Som Leksjon 1: V, så K. Deretter skrivevisningen.</td><td>«på nett».</td></tr>
+        <tr><td>Tekst + Enter i Serial Monitor</td><td>1 pip. Serial Monitor: <span class="m">[Sendt til ION] …</span></td><td>Samtaler: «FOX til ION», «Hvordan går det?». Hake under «Sendte melding» og «Fikk melding».</td></tr>
+        <tr><td><span class="m">@wolf tekst</span></td><td>Sender til WOLF i stedet for partneren, for denne ene meldingen.</td><td>Vises i begge parenes samtale, merket «utenfor paret».</td></tr>
+        <tr><td><span class="m">@alle tekst</span></td><td>Sender til alle bokser.</td><td>Merket «til alle».</td></tr>
+        <tr><td>Melding til meg</td><td>1 pip. «FOX: tekst» ruller over skjermen og står i Serial Monitor.</td><td></td></tr>
+        <tr><td>Melding til andre</td><td>Ingenting. Boksen hører den, men viser den ikke.</td><td>Tavla viser alt.</td></tr>
+        <tr><td>Knapp B uten egen tekst</td><td>Siste mottatte melding ruller en gang til.</td><td></td></tr>
+        <tr><td>Mer enn 28 tegn</td><td>Kuttes. Varsel i Serial Monitor.</td><td>Den kuttede teksten.</td></tr>
+        <tr><td>Ukjent navn etter @</td><td>Sendes ikke. Serial Monitor viser navnelista.</td><td></td></tr>
+      </table></div>
+    </section>
+
+    <section id="l3">
+      <h2>Leksjon 3: Uten PC</h2>
+      <div class="tw"><table>
+        <tr><th>Du gjør</th><th>Boksen</th></tr>
+        <tr><td>Dreier potmeteret</td><td>Skjermen viser de to siste tegnene i meldingen og tegnet du står på. Mellomrom vises som understrek.</td></tr>
+        <tr><td>Knapp A</td><td>Legger til tegnet. 1 pip. Ved full melding: 2 pip.</td></tr>
+        <tr><td>Står på <b>&lt;</b> + Knapp A</td><td>Sletter siste tegn. Dyp tone.</td></tr>
+        <tr><td>Knapp B med tekst</td><td>Sender til partneren. 2 pip og <b>&gt;</b>.</td></tr>
+        <tr><td>Knapp B uten tekst</td><td>Siste mottatte melding ruller en gang til. Finnes ingen: <b>?</b> og 2 pip.</td></tr>
+        <tr><td>Ingenting på 5 sekunder</td><td>Hele meldingen du holder på med ruller forbi.</td></tr>
+      </table></div>
+      <p>Rekkefølgen på potmeteret er <code>&lt;</code>, A til Z, mellomrom, 1 til 9, mellomrom. Vanlige bokstaver har bredere sone enn sjeldne: E er bredest. Ingen bokstav er smalere enn et tall. Knapper, potmeter og radio virker også mens tekst ruller.</p>
+    </section>
+
+    <section id="skjerm">
+      <h2>Skjerm og lyd</h2>
+      <div class="tw"><table>
+        <tr><th>Skjerm</th><th>Lyd</th><th>Betyr</th><th>Når</th></tr>
+        <tr><td>V</td><td>1 pip</td><td>Radioen svarer</td><td>Oppstart</td></tr>
+        <tr><td>X</td><td>2 pip</td><td>Radioen svarer ikke</td><td>Oppstart, til kablene er riktige</td></tr>
+        <tr><td>K</td><td>2 pip</td><td>Huben kvitterte</td><td>Oppstart, og når kontakten kommer tilbake</td></tr>
+        <tr><td>?</td><td>3 pip</td><td>Huben svarte ikke</td><td>Oppstart, og når kontakten blir borte</td></tr>
+        <tr><td>Hele skjermen lyser</td><td>Melodi opp</td><td>Partneren tente den</td><td>Leksjon 1</td></tr>
+        <tr><td>Skjermen slukkes</td><td>Melodi ned</td><td>Partneren slukket den</td><td>Leksjon 1</td></tr>
+        <tr><td>&gt;</td><td>2 pip</td><td>Meldingen er sendt</td><td>Leksjon 2 og 3</td></tr>
+        <tr><td>Rullende tekst</td><td>1 pip</td><td>Melding til deg</td><td>Alle leksjoner</td></tr>
+        <tr><td>«NAVN?» (L1), N (L2/3)</td><td>2 pip</td><td>KALLENAVN eller PARTNER er ukjent, eller de er like</td><td>Oppstart</td></tr>
+        <tr><td></td><td>Kort klikk</td><td>Knappetrykket er sendt</td><td>Leksjon 1</td></tr>
+      </table></div>
+    </section>
+
+    <section id="radio">
+      <h2>Adresser og pakke</h2>
+      <div class="tw"><table>
+        <tr><th>Adresse</th><th>Hvem sender</th><th>Hvem lytter</th><th>Kvittering</th><th>Brukes til</th></tr>
+        <tr><td class="m">HUB00</td><td>Boksene</td><td>Bare huben</td><td>Ja</td><td>Oppstart og livstegn. Kvitteringen gir «K».</td></tr>
+        <tr><td class="m">RADIO</td><td>Alle</td><td>Alle</td><td>Nei</td><td>Tenn, slukk og meldinger.</td></tr>
+      </table></div>
+      <p>Kanal 80 (2480 MHz), 250 kbps. Huben bruker 2 av radioens 6 lytteplasser, så antall bokser er ikke begrenset av den.</p>
+      <div class="bytes">
+        <div>type<small>1 tegn</small></div><div>fra<small>1 tegn</small></div><div>til<small>1 tegn</small></div><div>tekst<small>0 til 28 tegn</small></div><div>slutt<small>1 tegn</small></div>
+      </div>
+      <div class="tw"><table>
+        <tr><th>Type</th><th>Betyr</th><th>Adresse</th><th>«til»-feltet</th></tr>
+        <tr><td class="m">O</td><td>Jeg har startet</td><td class="m">HUB00</td><td>Boksens partner</td></tr>
+        <tr><td class="m">H</td><td>Jeg lever fortsatt</td><td class="m">HUB00</td><td>Boksens partner</td></tr>
+        <tr><td class="m">T</td><td>Tenn skjermen</td><td class="m">RADIO</td><td>Mottaker</td></tr>
+        <tr><td class="m">S</td><td>Slukk skjermen</td><td class="m">RADIO</td><td>Mottaker</td></tr>
+        <tr><td class="m">M</td><td>Tekstmelding</td><td class="m">RADIO</td><td>Mottaker, eller <span class="m">*</span> for alle</td></tr>
+      </table></div>
+      <p>«fra» og «til» er én bokstav: A for første navn i lista, B for andre, og så videre. <code>*</code> er alle, <code>#</code> er huben.</p>
+    </section>
+
+    <section id="hub">
+      <h2>Huben</h2>
+      <p>Huben skriver én linje per hendelse til Serial (9600 baud). Tavla leser de samme linjene.</p>
+      <div class="tw"><table>
+        <tr><th>Linje fra huben</th><th>Betyr</th></tr>
+        <tr><td class="m">READY|TeknaRadio Hub</td><td>Huben er oppe</td></tr>
+        <tr><td class="m">NAVN|HAWK,JET,ICE,…</td><td>Navnelista. Tavla får den herfra.</td></tr>
+        <tr><td class="m">ONLINE|FOX|ION</td><td>FOX har startet. Partneren er ION.</td></tr>
+        <tr><td class="m">PULS|FOX|ION</td><td>FOX lever fortsatt</td></tr>
+        <tr><td class="m">TENN|FOX|ION</td><td>FOX tente skjermen til ION</td></tr>
+        <tr><td class="m">SLUKK|FOX|ION</td><td>FOX slukket skjermen til ION</td></tr>
+        <tr><td class="m">MSG|FOX|ION|tekst</td><td>Melding fra FOX til ION. «til» kan være ALLE.</td></tr>
+        <tr><td class="m">SENDT|ION|tekst</td><td>Huben sendte selv</td></tr>
+        <tr><td class="m">ERR|…</td><td>Radio ikke funnet, eller ukjent navn</td></tr>
+      </table></div>
+      <div class="tw"><table>
+        <tr><th>Kursholderen skriver</th><th>Huben gjør</th></tr>
+        <tr><td class="m">Fem minutter igjen</td><td>Sender til alle bokser</td></tr>
+        <tr><td class="m">SEND|ion|Bra jobba</td><td>Sender bare til ION</td></tr>
+        <tr><td class="m">PING</td><td>Svarer med READY og navnelista</td></tr>
+      </table></div>
+    </section>
+
+    <section id="tavle">
+      <h2>Tavla og parene</h2>
+      <p>Tavla er nettsiden i <code>HubWeb/</code>. Start med «Start TeknaRadio Hub», som åpner http://localhost:8765. «Start demo» under «Med i dag» gir oppdiktet trafikk uten bokser.</p>
+      <ul>
+        <li><b>Med i dag:</b> kursholderen krysser av navnene som er i bruk. Bare de vises. Valget huskes i nettleseren.</li>
+        <li><b>Parene:</b> hver boks forteller huben hvem partneren er, i oppstartsmeldingen og i hvert livstegn. Tavla setter sammen parene selv.</li>
+        <li><b>Milepæler:</b> én rad per boks, med hake for «HUB hører deg», «Godkjent kallenavn», «Tente partneren», «Sendte melding» og «Fikk melding». Tent skjerm vises som lyspære på grønn bunn.</li>
+        <li><b>Samtaler:</b> boksene i en ring rundt HUB, og alle meldinger i rommet, med «fra» og «til». Klikk et navn eller en parknapp for å se bare det paret.</li>
+        <li><b>På tvers av par:</b> en melding sendt med <code>@navn</code> vises hos begge parene, merket «utenfor paret».</li>
+        <li><b>Til alle:</b> vises hos alle parene, merket «til alle».</li>
+        <li><b>Signalvei:</b> en fast forklaring med FOX–ION og ICE–WOLF. Velg en hendelse og se hvem som hører den og hvem som viser den. Bruker ikke det huben hører.</li>
+        <li><b>Sende:</b> linja nederst sender til én boks eller alle, maks 28 tegn.</li>
+      </ul>
+    </section>
+
+    <section id="feil">
+      <h2>Feilsøking</h2>
+      <div class="tw"><table>
+        <tr><th>Du ser</th><th>Årsak</th><th>Gjør dette</th></tr>
+        <tr><td>X som blir stående</td><td>Radioen svarer ikke</td><td>Sjekk de sju kablene til adapteren. Boksen viser V av seg selv når det er riktig.</td></tr>
+        <tr><td>?</td><td>Huben kvitterer ikke</td><td>Er huben på, med Hub.ino? Boksen prøver igjen hvert femte sekund.</td></tr>
+        <tr><td>«NAVN?» eller N</td><td>Navnet finnes ikke, eller KALLENAVN og PARTNER er like</td><td>Åpne Serial Monitor. Lista over gyldige navn står der.</td></tr>
+        <tr><td>Rød feil ved opplasting om ArduinoGraphics.h</td><td>Biblioteket mangler</td><td>Tools, Manage Libraries, søk ArduinoGraphics.</td></tr>
+        <tr><td>Partneren får ingenting</td><td>PARTNER peker på feil navn</td><td>Se linja «Partner:» i Serial Monitor på begge bokser. På tavla mangler haken under «Godkjent kallenavn».</td></tr>
+        <tr><td>To bokser med samme navn</td><td>Samme KALLENAVN to steder</td><td>Tavla viser bare én rad. Gi den ene et annet navn.</td></tr>
+        <tr><td>Tavla viser gammel side</td><td>Serveren kjørte allerede da den ble startet på nytt</td><td>Kjør «Stopp TeknaRadio Hub» først, så «Start TeknaRadio Hub».</td></tr>
+        <tr><td>Tilfeldige tegn på skjermen i Leksjon 2</td><td>Potmeteret er ikke koblet til</td><td>Koble midtbenet til A0 og ytterbena til 5V og GND.</td></tr>
+      </table></div>
+    </section>
+
+    <section id="tall">
+      <h2>Grenser</h2>
+      <div class="tw"><table>
+        <tr><th>Hva</th><th>Verdi</th></tr>
+        <tr><td>Tegn per melding</td><td>28</td></tr>
+        <tr><td>Navn i lista</td><td>12, i seks par: HAWK–JET, ICE–WOLF, ACE–PUMA, BOLT–ORCA, ION–FOX, LYNX–NOVA</td></tr>
+        <tr><td>Livstegn</td><td>Hvert 5. sekund</td></tr>
+        <tr><td>Tegn på potmeteret</td><td>A til Z, 1 til 9, mellomrom, og &lt; for sletting. Ingen æ, ø, å eller 0.</td></tr>
+        <tr><td>Navnelista</td><td>Står øverst i alle tre .ino-filene og må være lik i alle</td></tr>
+      </table></div>
+    </section>
+  </main>
+</div>

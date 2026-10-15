@@ -1,0 +1,185 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nødradio Betjeningskort</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: to betjeningspaneler side om side (ett per kodefil), symbolforklaring under. */
+:root{
+  --bg:#f1f4f2; --fg:#14201e; --muted:#5a6966; --line:#cdd6d3; --card:#ffffff;
+  --panel:#12211f; --panel-fg:#dfe9e6; --panel-line:#2b3f3b;
+  --led:#ff5a36; --led-off:#2a3936; --accent:#0b6b63;
+  --display:'Barlow Condensed','Arial Narrow',sans-serif;
+  --body:'Barlow','Helvetica Neue',Arial,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0c1413; --fg:#e3ebe8; --muted:#93a39f; --line:#263633; --card:#131e1c;
+  --panel:#0a1211; --panel-fg:#dfe9e6; --panel-line:#2b3f3b;
+  --led:#ff6a48; --led-off:#22302d; --accent:#4fc4b8; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0c1413; --fg:#e3ebe8; --muted:#93a39f; --line:#263633; --card:#131e1c;
+  --panel:#0a1211; --panel-fg:#dfe9e6; --panel-line:#2b3f3b;
+  --led:#ff6a48; --led-off:#22302d; --accent:#4fc4b8; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.45;margin:0}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:20px;padding-block:28px 56px;display:flex;flex-direction:column;gap:28px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.05}
+h1{font-size:clamp(34px,6vw,54px);font-weight:700;letter-spacing:.01em;text-transform:uppercase}
+h2{font-size:28px;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+h3{font-size:20px;font-weight:600;letter-spacing:.02em}
+.lead{max-width:62ch;color:var(--muted);margin:8px 0 0}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+code,.mono{font-family:var(--mono);font-size:.9em}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px}
+.card{background:var(--card);border:1px solid var(--line);display:flex;flex-direction:column;min-width:0}
+.card-head{padding:18px 20px 14px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.file{font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--line);padding:4px 8px;align-self:flex-start;overflow-wrap:anywhere}
+.card-body{padding:18px 20px 22px;display:flex;flex-direction:column;gap:18px}
+pre{margin:0;background:var(--panel);color:var(--panel-fg);font-family:var(--mono);font-size:13.5px;padding:12px 14px;overflow-x:auto}
+pre .k{color:#8fb8b1} pre .s{color:var(--led)}
+
+/* Boksen */
+.device{background:var(--panel);color:var(--panel-fg);padding:18px;display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center;border-radius:4px}
+.controls{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end}
+.ctl{display:flex;flex-direction:column;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#9fb3ae}
+.btn{width:38px;height:38px;border-radius:50%;background:#1d2f2c;border:2px solid var(--panel-line);box-shadow:inset 0 0 0 6px #0d1716}
+.pot{width:54px;height:54px;border-radius:50%;background:#1d2f2c;border:2px solid var(--panel-line);position:relative}
+.pot::after{content:"";position:absolute;left:50%;top:6px;width:3px;height:18px;background:var(--led);transform-origin:50% 21px;transform:translateX(-50%) rotate(-40deg)}
+.scale{font-family:var(--mono);font-size:11.5px;color:#9fb3ae;letter-spacing:.04em;white-space:nowrap}
+
+/* LED-matrise 12x8 */
+.mx{display:grid;grid-template-columns:repeat(12,var(--px,7px));gap:calc(var(--px,7px)*.45);padding:calc(var(--px,7px)*.9);background:#070d0c;border:1px solid var(--panel-line);width:max-content}
+.mx i{width:var(--px,7px);height:var(--px,7px);border-radius:50%;background:var(--led-off);display:block}
+.mx i.on{background:var(--led)}
+.mx.big{--px:9px}
+
+.does{display:grid;grid-template-columns:auto 1fr;gap:10px 14px;margin:0}
+.does dt{font-family:var(--display);font-weight:600;font-size:18px;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap}
+.does dd{margin:0;min-width:0}
+.note{color:var(--muted);font-size:14.5px}
+
+/* Symbolforklaring */
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.sym{background:var(--card);padding:18px;display:flex;flex-direction:column;gap:14px;align-items:flex-start;min-width:0}
+.sym .mx{background:var(--panel)}
+.sym h3{margin-bottom:4px}
+.sym p{margin:0;font-size:15px}
+.pips{display:flex;gap:4px;align-items:center;margin-top:8px;font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+.pips b{width:9px;height:9px;border-radius:50%;background:var(--accent);display:block;flex:none}
+.where{font-size:13.5px;color:var(--muted);margin-top:6px}
+
+.strip{border-top:2px solid var(--fg);padding-top:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}
+.strip p{margin:4px 0 0;font-size:15px}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">TeknaRadio · betjening</div>
+    <h1>Slik fungerer nødradioen</h1>
+    <p class="lead">Boksen har én skjerm, to knapper og ett potmeter. Hva de gjør, avhenger av hvilken kodefil som er lastet opp.</p>
+  </header>
+
+  <section class="cards">
+    <article class="card">
+      <div class="card-head">
+        <div class="eyebrow">Leksjon 1</div>
+        <h2>Bygg og test</h2>
+        <span class="file">Leksjon1_RadioTest.ino</span>
+      </div>
+      <div class="card-body">
+        <pre><span class="k">#define</span> KALLENAVN <span class="s">"ALFA"</span>
+<span class="k">#define</span> PARTNER   <span class="s">"BRAVO"</span></pre>
+        <p class="note">ALFA og BRAVO er bare eksempler. Bytt dem med kallenavnene dere har fått.</p>
+        <div class="device">
+          <div class="mx big" data-glyph="K"></div>
+          <div class="controls">
+            <div class="ctl"><div class="btn"></div>Knapp A</div>
+            <div class="ctl"><div class="btn"></div>Knapp B</div>
+          </div>
+        </div>
+        <dl class="does">
+          <dt>Oppstart</dt><dd>Boksen tester radioen og melder seg hos HUB. Du ser <b>V</b> og så <b>K</b>.</dd>
+          <dt>Knapp A</dt><dd>Tenner skjermen til partneren. Hos deg høres bare et kort klikk.</dd>
+          <dt>Knapp B</dt><dd>Slukker skjermen til partneren.</dd>
+          <dt>Reset</dt><dd>Kjører oppstartstesten en gang til.</dd>
+        </dl>
+        <p class="note">Potmeteret er ikke i bruk ennå. Det kobles til i Leksjon 2.</p>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-head">
+        <div class="eyebrow">Leksjon 2 og 3</div>
+        <h2>Nødradio</h2>
+        <span class="file">Leksjon2_Nodradio.ino</span>
+      </div>
+      <div class="card-body">
+        <pre><span class="k">#define</span> KALLENAVN <span class="s">"ALFA"</span>
+<span class="k">#define</span> PARTNER   <span class="s">"BRAVO"</span></pre>
+        <p class="note">ALFA og BRAVO er bare eksempler. Bytt dem med kallenavnene dere har fått.</p>
+        <div class="device">
+          <div class="mx big" data-status="HEI"></div>
+          <div class="controls">
+            <div class="ctl"><div class="btn"></div>Knapp A</div>
+            <div class="ctl"><div class="btn"></div>Knapp B</div>
+            <div class="ctl"><div class="pot"></div>Potmeter<span class="scale">&lt; A…Z _ 1…9</span></div>
+          </div>
+        </div>
+        <dl class="does">
+          <dt>Tastatur</dt><dd>Skriv i Serial Monitor og trykk Enter. Meldingen går til partneren. <code>@navn Hei</code> går til boksen med det kallenavnet, <code>@alle Hei</code> går til alle.</dd>
+          <dt>Potmeter</dt><dd>Velger tegn. Tegnet lengst til høyre på skjermen er det du står på.</dd>
+          <dt>Knapp A</dt><dd>Legger tegnet til i meldingen. Står du på <b>&lt;</b> helt til venstre, slettes siste tegn.</dd>
+          <dt>Knapp B</dt><dd>Sender meldingen. Har du ikke skrevet noe, ruller siste mottatte melding en gang til.</dd>
+        </dl>
+        <p class="note">Tastatur og potmeter virker hele tiden.<br>Leksjon 3 bruker samme fil, uten PC.</p>
+      </div>
+    </article>
+  </section>
+
+  <section>
+    <h2 style="margin-bottom:14px">Skjermen forteller</h2>
+    <div class="legend">
+      <div class="sym"><div class="mx" data-glyph="V"></div><div><h3>Radioen svarer</h3><p>Kablene til radioen er riktige.</p><div class="pips"><b></b>1 pip</div><div class="where">Oppstart</div></div></div>
+      <div class="sym"><div class="mx" data-glyph="X"></div><div><h3>Radioen svarer ikke</h3><p>Sjekk de sju kablene. Boksen prøver igjen hvert sekund og viser V når det er riktig.</p><div class="pips"><b></b><b></b>2 pip</div><div class="where">Oppstart</div></div></div>
+      <div class="sym"><div class="mx" data-glyph="K"></div><div><h3>HUB hører deg</h3><p>HUB kvitterte. Navnet ditt står på tavla.</p><div class="pips"><b></b><b></b>2 pip</div><div class="where">Oppstart, og når kontakten kommer tilbake</div></div></div>
+      <div class="sym"><div class="mx" data-glyph="?"></div><div><h3>Ingen kontakt med HUB</h3><p>HUB svarte ikke. Knapper og meldinger virker likevel.</p><div class="pips"><b></b><b></b><b></b>3 pip</div><div class="where">Oppstart, og når kontakten blir borte</div></div></div>
+      <div class="sym"><div class="mx" data-glyph="FULL"></div><div><h3>Partneren tente skjermen</h3><p>Hele skjermen lyser til partneren slukker den.</p><div class="pips">Melodi opp, og ned ved slukking</div><div class="where">Leksjon 1</div></div></div>
+      <div class="sym"><div class="mx" data-status="HEI"></div><div><h3>Du skriver</h3><p>De to siste tegnene i meldingen, og tegnet potmeteret står på. Mellomrom vises som understrek.</p><div class="pips"><b></b>1 pip per tegn</div><div class="where">Leksjon 2 og 3</div></div></div>
+      <div class="sym"><div class="mx" data-glyph=">"></div><div><h3>Sendt</h3><p>Meldingen er sendt. Ingen kvitterer, så du vet ikke om den kom fram.</p><div class="pips"><b></b><b></b>2 pip</div><div class="where">Leksjon 2 og 3</div></div></div>
+      <div class="sym"><div class="mx" data-glyph="N"></div><div><h3>Ukjent navn</h3><p>KALLENAVN eller PARTNER finnes ikke i lista, eller de er like. Lista står i Serial Monitor. I Leksjon 1 ruller «NAVN?» i stedet.</p><div class="pips"><b></b><b></b>2 pip</div><div class="where">Oppstart</div></div></div>
+    </div>
+  </section>
+
+  <section class="strip">
+    <div><h3>Alle hører alt</h3><p>Alle bokser sender på samme radiokanal. Navnet i meldingen avgjør hvilken boks som viser den.</p></div>
+    <div><h3>HUB ser alt</h3><p>HUB viser hver melding på tavla: hvem den er fra, hvem den er til, og hva som står i den.</p></div>
+    <div><h3>Livstegn</h3><p>Boksen melder seg hos HUB hvert femte sekund. Slik vet tavla hvem som er på nett.</p></div>
+    <div><h3>Maks 28 tegn</h3><p>Lengre meldinger kuttes. Fra tastatur får du beskjed i Serial Monitor.</p></div>
+  </section>
+</div>
+
+<script>
+const G5={
+ V:["10001","10001","10001","10001","10001","01010","00100"],
+ X:["10001","10001","01010","00100","01010","10001","10001"],
+ K:["10001","10010","10100","11000","10100","10010","10001"],
+ "?":["01110","10001","00001","00010","00100","00000","00100"],
+ ">":["01000","00100","00010","00001","00010","00100","01000"],
+ N:["10001","11001","10101","10011","10001","10001","10001"]
+};
+const G3={
+ H:["101","101","111","101","101"], E:["111","100","110","100","111"],
+ I:["111","010","010","010","111"]
+};
+document.querySelectorAll('.mx').forEach(el=>{
+  const on=new Set();
+  const g=el.dataset.glyph, s=el.dataset.status;
+  if(g==='FULL'){ for(let i=0;i<96;i++) on.add(i); }
+  else if(g){ G5[g].forEach((row,y)=>[...row].forEach((c,x)=>{ if(c==='1') on.add((y+1)*12+x+3); })); }
+  else if(s){ [...s].forEach((ch,k)=>G3[ch].forEach((row,y)=>[...row].forEach((c,x)=>{ if(c==='1') on.add((y+2)*12+x+k*4); }))); }
+  for(let i=0;i<96;i++){ const d=document.createElement('i'); if(on.has(i)) d.className='on'; el.appendChild(d); }
+});
+</script>

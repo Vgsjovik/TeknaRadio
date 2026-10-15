@@ -1,0 +1,109 @@
+<title>TeknaRadio Hub Milepæler</title>
+<link rel="stylesheet" href="hub-base.css">
+<style>
+/* Milepæler: én rad per boks, én kolonne per ting boksen skal ha fått til. Turkise felt fyller seg mot høyre utover kvelden. */
+#vis-tavle{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(430px,.6fr);gap:var(--marg);padding-block:20px;padding-inline:var(--marg)}
+.tabellboks{min-height:0;overflow:auto}
+table{width:100%;height:100%;border-collapse:separate;border-spacing:4px;table-layout:fixed}
+thead th{text-align:left;vertical-align:bottom;font-size:19px;line-height:1.1;padding:0 8px 8px}
+thead th span{display:block;font-weight:400;font-size:16px;color:var(--dempet);font-variant-numeric:tabular-nums;padding-top:4px}
+thead th:first-child{width:20%}
+thead th:last-child{width:26%}
+tbody:not(:first-of-type)::before{content:"";display:table-row;height:6px}
+tbody th{padding:0;height:1px}
+.navn{width:100%;height:100%;min-height:38px;text-align:left;display:flex;align-items:baseline;gap:10px;padding:4px 12px;border:2px solid var(--morkbla);background:var(--hvit);cursor:pointer}
+.navn b{font-size:clamp(22px,2.2vw,32px);line-height:1;letter-spacing:-.01em}
+.navn span{font-size:15px;font-weight:400;white-space:nowrap}
+.navn[data-s="nett"]{background:var(--gronn)}
+.navn[data-s="tent"]{background:var(--gul);border-width:5px;padding:1px 9px}
+.navn[data-s="borte"]{border-color:var(--rod);border-width:5px;padding:1px 9px}
+.navn[data-s="venter"]{border:2px dashed var(--strek);color:var(--dempet)}
+.navn[data-s="fri"]{border-color:transparent;color:var(--dempet)}
+.navn:hover{box-shadow:inset 0 -5px 0 var(--morkbla)}
+td.m{box-shadow:inset 0 0 0 2px var(--strek);padding:0 12px;font-weight:700;font-size:20px;font-variant-numeric:tabular-nums}
+td.m[data-ok="true"]{background:var(--turkis);box-shadow:none}
+td.m svg{width:26px;height:26px;vertical-align:-5px;margin-right:6px;fill:none;stroke:var(--morkbla);stroke-width:3.5;stroke-linecap:square}
+td.sist{font-size:19px;line-height:1.15;padding:0 8px;overflow-wrap:anywhere}
+tr[data-fri="true"] td.m{box-shadow:none}
+
+@media (max-width:900px){
+  #vis-tavle{grid-template-columns:minmax(0,1fr)}
+  table{min-width:820px;height:auto}
+  .feed ol{max-height:60vh}
+}
+</style>
+
+<div class="app">
+  <header id="topp"></header>
+  <main>
+    <section id="vis-tavle">
+      <div class="tabellboks">
+        <table>
+          <thead><tr id="hode"></tr></thead>
+        </table>
+      </div>
+      <aside id="feed"></aside>
+    </section>
+    <section id="vis-signal" class="signal" hidden>
+      <h2>Signalvei</h2>
+      <p>Her kommer forklaringen av hvordan en melding går fra én boks, gjennom lufta og fram til partneren. Skissen finnes fra før og flyttes inn i denne fanen.</p>
+      <p><a href="https://claude.ai/artifact/JL7PcXTJ9EPd4gHdjxRsPw">Åpne skissen av Signalvei</a></p>
+    </section>
+  </main>
+  <footer id="bunn"></footer>
+</div>
+
+<script src="hub-sim.js" charset="utf-8"></script>
+<script>
+var H = Hub, S = H.S, tabell = document.querySelector("table"), sig = "";
+var HAKE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13l5 5L20 6"/></svg>';
+
+H.skall([{ id: "tavle", navn: "Tavle" }, { id: "signal", navn: "Signalvei" }]);
+var feed = H.feed(document.getElementById("feed"));
+
+// Hver milepæl leses rett ut av det huben har hørt fra boksen.
+var MIL = [
+  { navn: "HUB hører deg", ok: function (b) { return b.forst > 0; } },
+  { navn: "Fant partneren", ok: function (b) { var p = b.partner && S.boks[b.partner]; return !!(b.forst && p && p.forst && p.partner === b.navn); } },
+  { navn: "Tente partneren", ok: function (b) { return b.harTent > 0; }, tall: function (b) { return b.harTent; } },
+  { navn: "Sendte melding", ok: function (b) { return b.sendt > 0; }, tall: function (b) { return b.sendt; } },
+  { navn: "Fikk melding", ok: function (b) { return b.fatt > 0; }, tall: function (b) { return b.fatt; } }
+];
+
+function sist(n) {
+  var h = S.hendelser.filter(function (x) { return x.type !== "online" && (x.fra === n || x.til === n); })[0];
+  if (!h) return "";
+  if (h.type === "msg") return (h.fra === n ? "til " + h.til : "fra " + h.fra) + ": " + H.esc(h.tekst);
+  var verb = h.type === "tenn" ? "tent" : "slukket";
+  return h.fra === n ? "har " + verb + " skjermen til " + h.til : "skjermen ble " + verb + " av " + h.fra;
+}
+
+function tegn() {
+  var med = S.navn.filter(function (n) { return S.med[n]; });
+  var hode = "<th>Kallenavn</th>" + MIL.map(function (m) {
+    var ant = med.filter(function (n) { return m.ok(S.boks[n]); }).length;
+    return "<th>" + m.navn + "<span>" + ant + " av " + med.length + "</span></th>";
+  }).join("") + "<th>Sist hørt</th>";
+  var kropp = H.par().map(function (p) {
+    return "<tbody>" + p.filter(Boolean).map(function (n) {
+      var b = S.boks[n], fri = !S.med[n];
+      return '<tr data-fri="' + fri + '"><th scope="row"><button class="navn" data-n="' + n + '" data-s="' + H.status(n) + '"><b>' + n + "</b><span>" + H.statustekst(n) + "</span></button></th>" +
+        MIL.map(function (m) {
+          var ok = !fri && m.ok(b);
+          return '<td class="m" data-ok="' + ok + '">' + (ok ? HAKE + (m.tall && m.tall(b) > 1 ? m.tall(b) : "") : "") + "</td>";
+        }).join("") + '<td class="sist">' + (fri ? "" : sist(n)) + "</td></tr>";
+    }).join("") + "</tbody>";
+  }).join("");
+  if (hode + kropp === sig) return;
+  sig = hode + kropp;
+  document.getElementById("hode").innerHTML = hode;
+  [].slice.call(tabell.tBodies).forEach(function (t) { t.remove(); });
+  tabell.insertAdjacentHTML("beforeend", kropp);
+}
+
+tabell.onclick = function (e) { var k = e.target.closest(".navn"); if (k) feed.velg(k.dataset.n); };
+
+H.ved(tegn);
+tegn();
+H.start();
+</script>

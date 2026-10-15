@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TeknaRadio Hub</title>
+<style>
+/* Farger og regler fra Teknas designmanual; skrift er Arial (manualens systemfont). */
+:root{
+  --turkis:#00B3B3; --lysbla:#CCF0F0; --morkbla:#003847; --gronn:#B5FFD0; --hvit:#fff;
+  --gul:#F7D68B; --rod:#F25656;
+  --dempet:#3d6672; --strek:#b9cfd4;
+  --marg:44px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--hvit);color:var(--morkbla);font:400 20px/1.3 Arial,Helvetica,sans-serif;caret-color:var(--turkis);scrollbar-color:var(--turkis) transparent}
+::selection{background:var(--gul);color:var(--morkbla)}
+:focus-visible{outline:3px solid var(--morkbla);outline-offset:3px}
+button,select,input{font-family:inherit;color:inherit;border-radius:0}
+h1,h2,p{margin:0}
+
+.app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr) auto}
+main{min-height:0;display:grid}
+main>section{min-height:0}
+
+.topp{background:var(--turkis);display:flex;flex-wrap:wrap;align-items:center;gap:12px 32px;padding-block:12px;padding-inline:var(--marg)}
+.topp img{height:56px;width:auto;display:block}
+.topp h1{font-size:28px;letter-spacing:-.01em}
+.faner{display:flex;gap:8px}
+.faner button,.knapp{font-weight:700;font-size:20px;padding:10px 22px;border:2px solid var(--morkbla);background:transparent;cursor:pointer}
+.faner button:hover,.knapp:hover{background:var(--lysbla)}
+.faner button[aria-selected="true"]{background:var(--morkbla);color:var(--hvit)}
+.hoyre{margin-left:auto;display:flex;flex-wrap:wrap;align-items:center;gap:10px 24px;font-size:18px}
+#hubstatus[data-ok="false"]{font-weight:700;background:var(--hvit);padding:6px 12px;box-shadow:inset 0 0 0 4px var(--rod)}
+
+.med{position:relative}
+.med summary{cursor:pointer;font-weight:700;padding:10px 16px;border:2px solid var(--morkbla);list-style:none}
+.med summary::-webkit-details-marker{display:none}
+.med summary:hover{background:var(--lysbla)}
+.med[open] summary{background:var(--morkbla);color:var(--hvit)}
+.medpanel{position:absolute;right:0;top:calc(100% + 8px);z-index:5;background:var(--hvit);border:2px solid var(--morkbla);padding:18px 22px;display:flex;flex-direction:column;gap:18px;box-shadow:0 12px 32px rgb(0 56 71 / .22)}
+.medliste{display:grid;grid-template-columns:repeat(2,auto);gap:12px 32px}
+.medliste label{display:flex;gap:10px;align-items:center;font-weight:700;font-size:22px;white-space:nowrap;cursor:pointer}
+.medliste input{width:24px;height:24px;accent-color:var(--morkbla);margin:0}
+.medpanel .knapp{font-size:18px;padding:8px 14px;background:var(--hvit)}
+.medpanel .knapp:hover{background:var(--lysbla)}
+
+.send{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:end;padding-block:14px 18px;padding-inline:var(--marg);background:var(--lysbla)}
+.felt{display:flex;flex-direction:column;gap:4px;min-width:0}
+.felt label{font-size:15px;font-weight:700}
+.felt select,.felt input{font-size:22px;padding:10px 12px;border:2px solid var(--morkbla);background:var(--hvit);min-width:0}
+.felt input[aria-invalid="true"]{border-color:var(--rod);border-width:4px;padding:8px 10px}
+.send button{font-weight:700;font-size:22px;padding:12px 34px;background:var(--morkbla);color:var(--hvit);border:2px solid var(--morkbla);cursor:pointer}
+.send button:hover{background:var(--turkis);color:var(--morkbla)}
+.send button:active{transform:translateY(1px)}
+
+/* Milepæler: én rad per boks, én kolonne per ting boksen skal ha fått til. */
+#vis-mil{padding-block:20px;padding-inline:var(--marg);overflow:auto}
+table{width:100%;border-collapse:separate;border-spacing:5px;table-layout:fixed}
+thead th{text-align:left;vertical-align:bottom;font-size:21px;line-height:1.1;padding:0 10px 8px}
+thead th span{display:block;font-weight:400;font-size:17px;color:var(--dempet);font-variant-numeric:tabular-nums;padding-top:4px}
+thead th:first-child{width:22%}
+thead th:last-child{width:28%}
+tbody th{padding:0;height:1px}
+/* --rad settes av settRadhoyde(): 57 px når det er plass, lavere når flere kallenavn skal få plass uten rulling. */
+.navn{width:100%;height:var(--rad,57px);text-align:left;display:flex;align-items:center;gap:12px;padding:0 14px;border:2px solid var(--morkbla);background:var(--hvit);cursor:pointer}
+/* --navn settes av settRadhoyde(), slik at det lengste navnet og statusteksten alltid får plass i ruta. */
+.navn b{font-size:var(--navn,32px);line-height:1}
+.navn span{font-size:17px;font-weight:400;white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.navn[data-s="nett"]{background:var(--gronn)}
+.navn[data-s="tent"]{background:var(--gronn)}
+.lampe{fill:var(--gul);stroke:var(--morkbla);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.navn .lampe{flex:none;width:min(30px,calc(var(--rad,57px) - 8px));height:min(30px,calc(var(--rad,57px) - 8px));margin-right:-6px}
+.navn[data-s="borte"]{border-color:var(--strek);color:var(--dempet)}
+.navn[data-s="venter"]{border:2px dashed var(--strek);color:var(--dempet)}
+.navn:hover{box-shadow:inset 0 -5px 0 var(--morkbla)}
+td.m{box-shadow:inset 0 0 0 2px var(--strek);padding:0 14px;font-weight:700;font-size:22px;font-variant-numeric:tabular-nums}
+td.m[data-ok="true"]{background:var(--turkis);box-shadow:none}
+td.m{line-height:1}
+td.m svg{width:min(28px,calc(var(--rad,57px) - 6px));height:min(28px,calc(var(--rad,57px) - 6px));vertical-align:-6px;margin-right:6px;fill:none;stroke:var(--morkbla);stroke-width:3.5;stroke-linecap:square}
+td.sist{font-size:22px;line-height:1.15;padding:0 10px;overflow-wrap:anywhere}
+.tomtavle{font-size:28px;font-weight:700;padding-top:24px}
+
+/* Samtaler: alle boksene rundt HUB, og det som er hørt, ved siden av. */
+#vis-samtaler{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(360px,.9fr);gap:var(--marg);padding-block:20px;padding-inline:var(--marg)}
+#ring{min-height:0;width:100%;height:100%;display:block}
+.par{stroke:var(--morkbla);stroke-width:3}
+.par.halv{stroke:var(--strek);stroke-dasharray:10 8}
+.par.valgt{stroke:var(--turkis);stroke-width:10}
+.hubsirkel{fill:var(--turkis)}
+.hubtekst{font-weight:700;font-size:34px;fill:var(--morkbla);text-anchor:middle}
+.plate{cursor:pointer}
+.plate rect{fill:var(--hvit);stroke:var(--morkbla);stroke-width:2}
+.plate .n{font-weight:700;font-size:44px;fill:var(--morkbla);text-anchor:middle;letter-spacing:-.01em}
+.plate .s{font-size:22px;fill:var(--morkbla);text-anchor:middle}
+.plate[data-s="nett"] rect{fill:var(--gronn)}
+.plate[data-s="tent"] rect{fill:var(--gronn)}
+.plate .lampe{display:none}
+.plate[data-s="tent"] .lampe{display:block}
+.plate[data-s="borte"] rect{stroke:var(--strek)}
+.plate[data-s="venter"] rect{stroke:var(--strek);stroke-dasharray:10 8}
+.plate[data-s="venter"] text,.plate[data-s="borte"] text{fill:var(--dempet)}
+.plate:hover rect,.plate.valgt rect{stroke:var(--morkbla);stroke-width:8;stroke-dasharray:none}
+.plate:focus-visible{outline:none}
+.plate:focus-visible rect{stroke:var(--morkbla);stroke-width:8}
+.skudd{fill:none;stroke-linecap:round;stroke-dasharray:.2 1.2;stroke-dashoffset:.2;animation:skudd .9s cubic-bezier(.16,1,.3,1) forwards}
+.skudd.msg{stroke:var(--turkis);stroke-width:11}
+.skudd.tenn{stroke:var(--morkbla);stroke-width:6}
+.skudd.puls{stroke:var(--turkis);stroke-width:3;animation-duration:1.2s}
+@keyframes skudd{to{stroke-dashoffset:-1}}
+@media (prefers-reduced-motion:reduce){.skudd{display:none}}
+
+.feed{display:flex;flex-direction:column;gap:16px;min-height:0}
+.feed h2{font-size:32px;letter-spacing:-.02em}
+.parvalg{display:flex;flex-wrap:wrap;gap:8px}
+.parvalg button{font-weight:700;font-size:18px;padding:8px 14px;border:2px solid var(--morkbla);background:var(--hvit);cursor:pointer}
+.parvalg button:hover{background:var(--lysbla)}
+.parvalg button[aria-pressed="true"]{background:var(--morkbla);color:var(--hvit)}
+.feed ol{list-style:none;margin:0;padding:0;overflow:auto;display:flex;flex-direction:column;gap:18px;flex:1;min-height:0}
+.feed li{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:14px;align-items:baseline}
+.feed time{font-size:16px;color:var(--dempet);font-variant-numeric:tabular-nums}
+.feed .hvem{font-weight:700;font-size:20px}
+.feed .tekst{grid-column:2;font-size:28px;line-height:1.2;overflow-wrap:anywhere}
+.feed .tom{color:var(--dempet);display:block}
+.merke{font-size:15px;font-weight:700;padding:2px 8px;background:var(--gul);margin-left:8px;white-space:nowrap}
+.merke.alle{background:var(--gronn)}
+
+/* Signalvei: velg en hendelse til venstre, se hvem som hører og viser den, og hva som skjer på boksen og tavla. */
+#vis-signal{display:grid;grid-template-columns:minmax(200px,280px) minmax(0,1fr) minmax(280px,380px);gap:var(--marg);padding-block:20px;padding-inline:var(--marg)}
+.sv-valg{display:flex;flex-direction:column;gap:8px;min-height:0;overflow:auto}
+.sv-valg button{font-weight:700;font-size:20px;text-align:left;padding:10px 14px;border:2px solid var(--morkbla);background:var(--hvit);cursor:pointer}
+.sv-valg button:hover{background:var(--lysbla)}
+.sv-valg button[aria-pressed="true"]{background:var(--morkbla);color:var(--hvit)}
+.sv-scene{display:flex;flex-direction:column;gap:14px;min-width:0;min-height:0}
+.sv-scene h2{font-size:38px;letter-spacing:-.02em;line-height:1.05;text-wrap:balance}
+.sv-scene>p{font-size:22px;max-width:60ch}
+#sv-kart{width:100%;flex:1;min-height:0;display:block}
+.sv-node rect{fill:var(--hvit);stroke:var(--morkbla);stroke-width:2}
+.sv-node text{fill:var(--morkbla);font-weight:700;font-size:28px;text-anchor:middle}
+.sv-node .sv-under{font-weight:400;font-size:15px}
+.sv-node.sender rect{stroke-width:6}
+.sv-node.viser rect{fill:var(--turkis)}
+.sv-node.dod rect{stroke:var(--strek);stroke-dasharray:8 6}
+.sv-node.dod text{fill:var(--dempet)}
+.sv-par{stroke:var(--strek);stroke-width:2;stroke-dasharray:3 7;fill:none}
+.sv-lenke{fill:none;stroke-width:4;stroke:var(--turkis)}
+.sv-lenke.horer{stroke:var(--dempet);stroke-dasharray:8 7;stroke-width:2}
+.sv-lenke.kvitt{stroke:var(--morkbla);stroke-width:2}
+.sv-lenke.tapt{stroke:var(--strek);stroke-dasharray:3 8}
+.sv-lenketekst{font-size:15px;fill:var(--morkbla)}
+.sv-nokkel{display:flex;flex-wrap:wrap;gap:8px 28px;font-size:18px}
+.sv-nokkel span{display:inline-flex;align-items:center;gap:10px}
+.sv-nokkel svg{width:40px;height:8px;flex:none}
+.sv-nokkel b{display:inline-block;width:22px;height:22px;background:var(--turkis);box-shadow:inset 0 0 0 2px var(--morkbla)}
+.sv-fakta{display:flex;flex-direction:column;gap:22px;min-height:0;overflow:auto}
+.sv-fakta h3{font-size:17px;margin:0 0 6px}
+.sv-fakta p{font-size:20px;line-height:1.3}
+.sv-pakke{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.sv-pakke span{box-shadow:inset 0 0 0 2px var(--strek);padding:5px 9px;display:flex;flex-direction:column;font-weight:700;font-size:18px;min-width:0;overflow-wrap:anywhere}
+.sv-pakke small{font-weight:400;font-size:13px;color:var(--dempet)}
+.sv-hublinje{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:17px;background:var(--lysbla);padding:8px 10px;overflow-wrap:anywhere;margin-bottom:14px}
+
+@media (max-width:900px){
+  #vis-signal{grid-template-columns:minmax(0,1fr)}
+  #sv-kart{flex:none;height:auto}
+  :root{--marg:16px}
+  html,body{height:auto}
+  .app{height:auto;display:block}
+  main{display:block}
+  .hoyre{margin-left:0}
+  .medpanel{right:auto;left:0}
+  .send{grid-template-columns:minmax(0,1fr)}
+  #vis-samtaler{grid-template-columns:minmax(0,1fr)}
+  #ring{aspect-ratio:1;height:auto}
+  .feed ol{max-height:60vh}
+  table{min-width:860px;height:auto}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topp">
+    <img src="/logo" alt="Tekna" width="39" height="56">
+    <h1>TeknaRadio Hub</h1>
+    <div class="faner" role="tablist" id="faner">
+      <button role="tab" aria-selected="true" data-f="mil">Milepæler</button>
+      <button role="tab" aria-selected="false" data-f="samtaler">Samtaler</button>
+      <button role="tab" aria-selected="false" data-f="signal">Signalvei</button>
+    </div>
+    <div class="hoyre">
+      <span id="hubstatus" data-ok="false">Kobler til serveren</span>
+      <details class="med">
+        <summary id="medtall">Med i dag</summary>
+        <div class="medpanel">
+          <div class="medliste" id="medliste"></div>
+          <button class="knapp" id="demoknapp">Start demo</button>
+        </div>
+      </details>
+    </div>
+  </header>
+
+  <main>
+    <section id="vis-mil">
+      <table>
+        <thead><tr id="hode"></tr></thead>
+      </table>
+      <p class="tomtavle" id="tomtavle" hidden>Venter på navnelista fra HUB.</p>
+    </section>
+    <section id="vis-samtaler" hidden>
+      <svg id="ring" viewBox="0 0 1000 1000" preserveAspectRatio="xMinYMid meet" role="group" aria-label="Alle boksene rundt HUB"></svg>
+      <aside class="feed">
+        <h2 id="feedtittel">Alt som er hørt</h2>
+        <div class="parvalg" id="parvalg"></div>
+        <ol id="feed"></ol>
+      </aside>
+    </section>
+    <section id="vis-signal" hidden>
+      <div class="sv-valg" id="sv-valg" role="group" aria-label="Velg hendelse"></div>
+      <div class="sv-scene">
+        <h2 id="sv-tittel"></h2>
+        <p id="sv-hva"></p>
+        <svg id="sv-kart" viewBox="0 0 760 450" role="img" aria-labelledby="sv-tittel">
+          <path class="sv-par" d="M175 60 H585"/>
+          <path class="sv-par" d="M175 230 H585"/>
+          <g id="sv-lenker"></g>
+          <g id="sv-noder"></g>
+        </svg>
+        <div class="sv-nokkel">
+          <span><b></b>viser meldingen</span>
+          <span><svg viewBox="0 0 40 8" aria-hidden="true"><line class="sv-lenke" x1="0" y1="4" x2="40" y2="4"/></svg>sendt hit, og brukt</span>
+          <span><svg viewBox="0 0 40 8" aria-hidden="true"><line class="sv-lenke horer" x1="0" y1="4" x2="40" y2="4"/></svg>hører den, men viser den ikke</span>
+          <span><svg viewBox="0 0 40 8" aria-hidden="true"><line class="sv-lenke kvitt" x1="0" y1="4" x2="40" y2="4"/></svg>kvittering tilbake</span>
+        </div>
+      </div>
+      <div class="sv-fakta">
+        <div><h3>På boksen</h3><p id="sv-boks"></p></div>
+        <div><h3>Pakken i lufta</h3><div class="sv-pakke" id="sv-pakke"></div><p id="sv-adresse"></p></div>
+        <div><h3>HUB skriver</h3><div class="sv-hublinje" id="sv-hub"></div><h3>På tavla</h3><p id="sv-tavle"></p></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <form class="send" id="sendskjema" novalidate>
+      <div class="felt"><label for="til">Til</label><select id="til"></select></div>
+      <div class="felt"><label for="tekst" id="tekstlabel">Melding</label><input id="tekst" maxlength="28" autocomplete="off"></div>
+      <button>Send</button>
+    </form>
+  </footer>
+</div>
+
+<script>
+function $(id) { return document.getElementById(id); }
+
+// ---- Modellen: leser linjene huben skriver (formatet står øverst i Hub/Hub.ino) ----
+var S = { navn: [], med: {}, boks: {}, hendelser: [] }, nr = 0, valgt = null;
+var NAVN_OK = /^[A-Z0-9]{1,8}$/;
+var ute = [];
+try { ute = JSON.parse(localStorage.getItem("teknaradio-ute")) || []; } catch (e) {}
+
+function boks(n) {
+  return S.boks[n] || (S.boks[n] = { navn: n, partner: null, sist: 0, forst: 0, tent: false, harTent: 0, sendt: 0, fatt: 0 });
+}
+function nullstill() { S.boks = {}; S.hendelser = []; S.navn.forEach(boks); }
+
+function linje(l, t) {
+  var f = l.split("|"), k = f[0], a, h = null;
+  // Navn settes rett inn i HTML flere steder, så alt som ikke ser ut som et kallenavn, stoppes her.
+  if (k === "NAVN" ? !(f[1] || "").split(",").every(function (n) { return NAVN_OK.test(n); })
+    : !NAVN_OK.test(f[1]) || (k !== "SENDT" && !NAVN_OK.test(f[2]))) return null;
+  if (k === "NAVN") {
+    if (S.navn.join() !== f[1]) { S.navn = f[1].split(","); byggRing(); byggMedliste(); }
+    S.navn.forEach(function (n) { boks(n); S.med[n] = ute.indexOf(n) < 0; });
+  } else if (k === "ONLINE" || k === "PULS") {
+    a = boks(f[1]); a.partner = f[2]; a.sist = Math.max(a.sist, t);
+    if (!a.forst) a.forst = t;
+    if (k === "ONLINE") { a.tent = false; h = { type: "online", fra: f[1] }; }
+  } else if (k === "TENN" || k === "SLUKK") {
+    a = boks(f[1]); a.sist = Math.max(a.sist, t);
+    boks(f[2]).tent = k === "TENN";
+    if (k === "TENN") a.harTent++;
+    h = { type: k === "TENN" ? "tenn" : "slukk", fra: f[1], til: f[2] };
+  } else if (k === "MSG") {
+    a = boks(f[1]); a.sist = Math.max(a.sist, t); a.sendt++;
+    if (f[2] !== "ALLE") boks(f[2]).fatt++;
+    h = { type: "msg", fra: f[1], til: f[2], tekst: f.slice(3).join("|") };
+  } else if (k === "SENDT") {
+    h = { type: "msg", fra: "HUB", til: f[1], tekst: f.slice(2).join("|") };
+  }
+  if (h) { h.t = t; h.id = ++nr; S.hendelser.unshift(h); if (S.hendelser.length > 500) S.hendelser.pop(); }
+  return h;
+}
+
+var TEKST = { fri: "ikke med", venter: "ikke hørt", borte: "ikke på nett", nett: "på nett", tent: "skjerm tent" };
+function status(n) {
+  var b = boks(n);
+  if (!S.med[n]) return "fri";
+  if (!b.sist) return "venter";
+  if (Date.now() - b.sist > 15000) return "borte";
+  return b.tent ? "tent" : "nett";
+}
+
+// Parene bygges av det boksene selv har meldt som partner.
+function par() {
+  var brukt = {}, ut = [];
+  S.navn.forEach(function (n) {
+    var p = S.boks[n].partner;
+    if (brukt[n] || !S.med[n] || !p || !S.boks[p] || !S.med[p] || brukt[p]) return;
+    brukt[n] = brukt[p] = 1;
+    ut.push(S.navn.indexOf(n) < S.navn.indexOf(p) ? [n, p] : [p, n]);
+  });
+  S.navn.forEach(function (n) { if (!brukt[n] && S.med[n]) ut.push([n, null]); });
+  return ut;
+}
+function parTil(n) { return par().filter(function (p) { return p.indexOf(n) > -1; })[0] || null; }
+function funnet(b) { var p = b.partner && S.boks[b.partner]; return !!(b.forst && p && p.forst && p.partner === b.navn); }
+function iPar(h, p) { return h.til === "ALLE" || p.indexOf(h.fra) > -1 || p.indexOf(h.til) > -1; }
+function setning(h) {
+  if (h.type === "msg") return { hvem: h.fra + " til " + (h.til === "ALLE" ? "alle" : h.til), tekst: h.tekst };
+  if (h.type === "tenn") return { hvem: h.fra + " tente skjermen til " + h.til };
+  if (h.type === "slukk") return { hvem: h.fra + " slukket skjermen til " + h.til };
+  return { hvem: h.fra + " er på nett" };
+}
+function merke(h) {
+  if (h.type !== "msg") return "";
+  if (h.til === "ALLE") return '<span class="merke alle">til alle</span>';
+  if (h.fra === "HUB") return '<span class="merke alle">fra HUB</span>';
+  if (boks(h.fra).partner !== h.til) return '<span class="merke">utenfor paret</span>';
+  return "";
+}
+function kl(t) { return new Date(t).toLocaleTimeString("nb-NO", { hour12: false }); }
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+// ---- Topplinje: faner og hvem som er med ----
+function visFane(id) {
+  [].forEach.call($("faner").children, function (k) { k.setAttribute("aria-selected", k.dataset.f === id); });
+  ["mil", "samtaler", "signal"].forEach(function (f) { $("vis-" + f).hidden = f !== id; });
+}
+$("faner").onclick = function (e) { if (e.target.dataset.f) visFane(e.target.dataset.f); };
+
+function byggMedliste() {
+  $("medliste").innerHTML = S.navn.map(function (n) {
+    return '<label><input type="checkbox" id="med-' + n + '" value="' + n + '"' + (ute.indexOf(n) < 0 ? " checked" : "") + '>' + n + '</label>';
+  }).join("");
+}
+$("medliste").onchange = function (e) {
+  var n = e.target.value;
+  S.med[n] = e.target.checked;
+  ute = S.navn.filter(function (x) { return !S.med[x]; });
+  try { localStorage.setItem("teknaradio-ute", JSON.stringify(ute)); } catch (err) {}
+  if (valgt && (!S.med[valgt[0]] || !S.med[valgt[1]])) valgt = null;
+  tegn();
+};
+$("demoknapp").onclick = function () {
+  fetch("/demo", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+};
+
+// ---- Milepæler ----
+var HAKE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13l5 5L20 6"/></svg>';
+// Lyspære som vises når boksens skjerm er tent. Tegnet, ikke emoji, så den ser lik ut på alle maskiner.
+var LAMPE_D = "M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3zM9.5 19h5M10.5 22h3";
+var LAMPE = '<svg class="lampe" viewBox="0 0 24 24" aria-hidden="true"><path d="' + LAMPE_D + '"/></svg>';
+var MIL = [
+  { navn: "HUB hører deg", ok: function (b) { return b.forst > 0; } },
+  { navn: "Godkjent kallenavn", ok: funnet },
+  { navn: "Tente partneren", ok: function (b) { return b.harTent > 0; }, tall: function (b) { return b.harTent; } },
+  { navn: "Sendte melding", ok: function (b) { return b.sendt > 0; }, tall: function (b) { return b.sendt; } },
+  { navn: "Fikk melding", ok: function (b) { return b.fatt > 0; }, tall: function (b) { return b.fatt; } }
+];
+function sistHort(n) {
+  var h = S.hendelser.filter(function (x) { return x.type !== "online" && (x.fra === n || x.til === n); })[0];
+  if (!h) return "";
+  if (h.type === "msg") return (h.fra === n ? "til " + h.til : "fra " + h.fra) + ": " + esc(h.tekst);
+  var verb = h.type === "tenn" ? "tent" : "slukket";
+  return h.fra === n ? "har " + verb + " skjermen til " + h.til : "skjermen ble " + verb + " av " + h.fra;
+}
+var tabell = document.querySelector("table"), milSig = "";
+function tegnMil() {
+  var med = S.navn.filter(function (n) { return S.med[n]; });
+  var hode = "<th>Kallenavn</th>" + MIL.map(function (m) {
+    var ant = med.filter(function (n) { return m.ok(S.boks[n]); }).length;
+    return "<th>" + m.navn + "<span>" + ant + " av " + med.length + "</span></th>";
+  }).join("") + "<th>Sist hørt</th>";
+  var kropp = par().map(function (p) {
+    return "<tbody>" + p.filter(Boolean).map(function (n) {
+      var b = S.boks[n], s = status(n);
+      return '<tr><th scope="row"><button class="navn" data-n="' + n + '" data-s="' + s + '"><b>' + n + "</b>" + (s === "tent" ? LAMPE : "") + "<span>" + TEKST[s] + "</span></button></th>" +
+        MIL.map(function (m) {
+          var ok = m.ok(b);
+          return '<td class="m" data-ok="' + ok + '">' + (ok ? HAKE + (m.tall && m.tall(b) > 1 ? m.tall(b) : "") : "") + "</td>";
+        }).join("") + '<td class="sist">' + sistHort(n) + "</td></tr>";
+    }).join("") + "</tbody>";
+  }).join("");
+  settRadhoyde();
+  if (hode + kropp === milSig) return;
+  milSig = hode + kropp;
+  $("hode").innerHTML = hode;
+  [].slice.call(tabell.tBodies).forEach(function (t) { t.remove(); });
+  tabell.insertAdjacentHTML("beforeend", kropp);
+  tabell.hidden = !S.navn.length;
+  $("tomtavle").hidden = !!S.navn.length;
+  settRadhoyde();
+}
+// Fordeler høyden som er igjen under overskriftene på radene, opp til 57 px per rad.
+function settRadhoyde() {
+  var n = tabell.querySelectorAll("tbody tr").length, s = $("vis-mil");
+  if (!n || s.hidden) return;
+  var rad = 57;
+  if (matchMedia("(max-width:900px)").matches) tabell.style.removeProperty("--rad");
+  else {
+    rad = Math.max(24, Math.min(57, Math.floor((s.clientHeight - 40 - tabell.tHead.offsetHeight - 5 * (n + 2)) / n)));
+    tabell.style.setProperty("--rad", rad + "px");
+  }
+  // Navnet får det som er igjen av rutas bredde etter det bredeste som kan stå bak det: lyspære + «skjerm tent».
+  var bredde = tabell.querySelector(".navn").clientWidth - 28 - 12 - STATUSBREDDE;
+  tabell.style.setProperty("--navn", Math.max(12, Math.floor(Math.min(rad * .56, bredde / bredesteNavn()))) + "px");
+}
+var maler = document.createElement("canvas").getContext("2d"), STATUSBREDDE, navnSig = "", navnEm = 1;
+maler.font = "17px Arial";
+STATUSBREDDE = Math.ceil(Math.max(maler.measureText(TEKST.borte).width, 36 + maler.measureText(TEKST.tent).width)) + 4;
+function bredesteNavn() {
+  if (navnSig !== S.navn.join()) {
+    navnSig = S.navn.join();
+    maler.font = "bold 100px Arial";
+    navnEm = Math.max.apply(null, S.navn.map(function (x) { return maler.measureText(x).width / 100; }).concat(1));
+  }
+  return navnEm;
+}
+tabell.onclick = function (e) {
+  var k = e.target.closest(".navn");
+  if (!k) return;
+  var p = parTil(k.dataset.n);
+  valgt = p && p[1] ? p : null;
+  visFane("samtaler");
+  tegn();
+};
+
+// ---- Samtaler: ringen ----
+var NS = "http://www.w3.org/2000/svg", svg = $("ring"), M = { x: 500, y: 500 }, pos = {}, plate = {}, lenker, spor;
+function el(navn, attr, tekst) {
+  var e = document.createElementNS(NS, navn);
+  for (var k in attr) e.setAttribute(k, attr[k]);
+  if (tekst) e.textContent = tekst;
+  return e;
+}
+// Hvert navn flyttes fem plasser bort fra forrige. Da sitter partnere nesten rett overfor hverandre,
+// og linjene mellom dem legger seg rundt HUB i stedet for gjennom den.
+function byggRing() {
+  var ant = S.navn.length, hopp = ant === 12 ? 5 : 1;
+  svg.textContent = ""; pos = {}; plate = {};
+  S.navn.forEach(function (n, i) {
+    var v = (((i * hopp) % ant) * 360 / ant + 180 / ant - 90) * Math.PI / 180;
+    pos[n] = { x: M.x + 390 * Math.cos(v), y: M.y + 390 * Math.sin(v) };
+  });
+  lenker = svg.appendChild(el("g", {}));
+  spor = svg.appendChild(el("g", {}));
+  svg.appendChild(el("circle", { cx: M.x, cy: M.y, r: 64, "class": "hubsirkel" }));
+  svg.appendChild(el("text", { x: M.x, y: M.y + 12, "class": "hubtekst" }, "HUB"));
+  S.navn.forEach(function (n) {
+    var p = pos[n], g = el("g", { "class": "plate", tabindex: 0, role: "button" });
+    g.appendChild(el("rect", { x: p.x - 96, y: p.y - 46, width: 192, height: 92 }));
+    g.appendChild(el("text", { x: p.x, y: p.y + 4, "class": "n" }, n));
+    g.appendChild(el("path", { d: LAMPE_D, "class": "lampe", transform: "translate(" + (p.x - 94) + " " + (p.y + 3) + ") scale(1.6)" }));
+    g.appendChild(el("text", { x: p.x, y: p.y + 32, "class": "s" }));
+    g.onclick = function () { velg(n); };
+    g.onkeydown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); velg(n); } };
+    plate[n] = svg.appendChild(g);
+  });
+}
+function tegnRing() {
+  S.navn.forEach(function (n) {
+    var g = plate[n], s = status(n);
+    g.style.display = s === "fri" ? "none" : "";
+    g.dataset.s = s;
+    g.classList.toggle("valgt", !!valgt && valgt.indexOf(n) > -1);
+    g.lastChild.textContent = TEKST[s];
+    g.setAttribute("aria-label", n + ", " + TEKST[s]);
+  });
+  var html = par().filter(function (p) { return p[1]; }).map(function (p) {
+    var a = pos[p[0]], b = pos[p[1]];
+    var klasse = valgt && valgt[0] === p[0] ? " valgt" : funnet(S.boks[p[0]]) ? "" : " halv";
+    return '<line class="par' + klasse + '" x1="' + a.x + '" y1="' + a.y + '" x2="' + b.x + '" y2="' + b.y + '"/>';
+  }).join("");
+  if (lenker && lenker.dataset.h !== html) { lenker.innerHTML = html; lenker.dataset.h = html; }
+}
+function skudd(a, b, klasse) {
+  if (!a || !b || document.hidden || $("vis-samtaler").hidden) return;
+  var l = el("line", { x1: a.x, y1: a.y, x2: b.x, y2: b.y, pathLength: 1, "class": "skudd " + klasse });
+  l.addEventListener("animationend", function () { l.remove(); });
+  spor.appendChild(l);
+}
+function visSending(h) {
+  if (h.type === "online") return;
+  var fra = h.fra === "HUB" ? M : pos[h.fra], klasse = h.type === "msg" ? "msg" : "tenn";
+  if (h.til === "ALLE") S.navn.forEach(function (n) { if (n !== h.fra && S.med[n]) skudd(fra, pos[n], klasse); });
+  else skudd(fra, pos[h.til], klasse);
+}
+
+// ---- Samtaler: det som er hørt, alt eller ett par ----
+var feedSig = "";
+function velg(n) {
+  var p = n && parTil(n);
+  valgt = p && p[1] && !(valgt && valgt[0] === p[0]) ? p : null;
+  tegn();
+}
+function tegnFeed() {
+  var pr = par().filter(function (p) { return p[1]; });
+  if (valgt && !pr.some(function (p) { return p[0] === valgt[0] && p[1] === valgt[1]; })) valgt = null;
+  var rader = S.hendelser.filter(function (h) { return !valgt || iPar(h, valgt); }).slice(0, 60);
+  var sig = (valgt ? valgt[0] : "") + "|" + (rader[0] ? rader[0].id : "") + "|" + rader.length + "|" + pr.join(";");
+  if (sig === feedSig) return;
+  feedSig = sig;
+  $("feedtittel").textContent = valgt ? valgt[0] + " og " + valgt[1] : "Alt som er hørt";
+  $("parvalg").innerHTML = '<button data-n="" aria-pressed="' + !valgt + '">Alle</button>' + pr.map(function (p) {
+    return '<button data-n="' + p[0] + '" aria-pressed="' + !!(valgt && valgt[0] === p[0]) + '">' + p[0] + " og " + p[1] + "</button>";
+  }).join("");
+  $("feed").innerHTML = rader.map(function (h) {
+    var s = setning(h);
+    return "<li><time>" + kl(h.t) + '</time><span class="hvem">' + s.hvem + merke(h) + "</span>" +
+      (s.tekst ? '<span class="tekst">' + esc(s.tekst) + "</span>" : "") + "</li>";
+  }).join("") || '<li><span class="tom">' + (valgt ? "Ingenting hørt fra dette paret ennå." : "Ingenting hørt ennå.") + "</span></li>";
+}
+$("parvalg").onclick = function (e) {
+  var k = e.target.closest("button");
+  if (!k) return;
+  valgt = k.dataset.n ? parTil(k.dataset.n) : null;
+  tegn();
+};
+
+// ---- Sending ----
+var tilSig = "";
+function tegnSkall() {
+  var med = S.navn.filter(function (n) { return S.med[n]; });
+  $("medtall").textContent = "Med i dag: " + med.length + " av " + S.navn.length;
+  var opt = '<option value="ALLE">Alle</option>' + med.map(function (n) { return "<option>" + n + "</option>"; }).join("");
+  if (opt !== tilSig) { var v = $("til").value; $("til").innerHTML = opt; tilSig = opt; $("til").value = v; if (!$("til").value) $("til").value = "ALLE"; }
+}
+function teller() { $("tekstlabel").textContent = "Melding (" + $("tekst").value.length + " av 28 tegn)"; }
+function feilmelding(t) { $("tekst").setAttribute("aria-invalid", "true"); $("tekstlabel").textContent = t; $("tekst").focus(); }
+$("tekst").oninput = function () { $("tekst").removeAttribute("aria-invalid"); teller(); };
+$("sendskjema").onsubmit = function (e) {
+  e.preventDefault();
+  var v = $("tekst").value.trim();
+  if (!v) return feilmelding("Skriv en melding først");
+  fetch("/send", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ til: $("til").value, text: v }) })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (!d.ok) return feilmelding("Ikke sendt. Ingen HUB er koblet til.");
+      $("tekst").value = ""; teller();
+    })
+    .catch(function () { feilmelding("Ikke sendt. Serveren svarer ikke."); });
+};
+
+// ---- Signalvei: en fast forklaring med to eksempelpar, uavhengig av hva huben hører ----
+(function () {
+  var POS = { FOX: [95, 60], ION: [665, 60], ICE: [95, 230], WOLF: [665, 230], HUB: [380, 400] };
+  var UNDER = { FOX: "partner: ION", ION: "partner: FOX", ICE: "partner: WOLF", WOLF: "partner: ICE", HUB: "hører alt" };
+  var B = 150, H = 64;
+  var HENDELSER = [
+    { navn: "Oppstart", fra: "FOX", viser: ["HUB"], horer: [], kvitt: true,
+      hva: "FOX har akkurat fått strøm. Radioen svarte (V), og nå melder boksen seg hos HUB.",
+      boks: "FOX viser <b>K</b> og piper to ganger. Uten kvittering hadde den vist <b>?</b>.",
+      pakke: [["type", "O"], ["fra", "FOX"], ["partner", "ION"]], adresse: "Sendt til HUB00. Bare HUB lytter der, så bare HUB kan kvittere.",
+      hub: "ONLINE|FOX|ION", tavle: "FOX får hake i «HUB hører deg», og navnet blir grønt." },
+    { navn: "Livstegn", fra: "FOX", viser: ["HUB"], horer: [], kvitt: true,
+      hva: "Hvert femte sekund sier FOX fra at den fortsatt lever. Det skjer av seg selv.",
+      boks: "Ingenting synlig, så lenge kvitteringen kommer.",
+      pakke: [["type", "H"], ["fra", "FOX"], ["partner", "ION"]], adresse: "Sendt til HUB00, med kvittering.",
+      hub: "PULS|FOX|ION", tavle: "Navnet til FOX holder seg grønt. Etter cirka 15 sekunder uten livstegn blir det grått, «ikke på nett»." },
+    { navn: "Knapp A i Leksjon 1", fra: "FOX", viser: ["ION", "HUB"], horer: ["ICE", "WOLF"],
+      hva: "FOX trykker Knapp A for å tenne skjermen til partneren.",
+      boks: "FOX klikker kort. Hos ION tennes hele skjermen, med melodi opp. ICE og WOLF merker ingenting.",
+      pakke: [["type", "T"], ["fra", "FOX"], ["til", "ION"]], adresse: "Sendt til RADIO. Alle hører den, ingen kvitterer.",
+      hub: "TENN|FOX|ION", tavle: "ION får en lyspære ved navnet. FOX får hake i «Tente partneren»." },
+    { navn: "Melding til partneren", fra: "FOX", viser: ["ION", "HUB"], horer: ["ICE", "WOLF"],
+      hva: "FOX skriver «Hvordan går det?» i Serial Monitor, eller med potmeter og knapper.",
+      boks: "FOX viser <b>&gt;</b>. Hos ION piper det, og «FOX: Hvordan går det?» ruller over skjermen.",
+      pakke: [["type", "M"], ["fra", "FOX"], ["til", "ION"], ["tekst", "Hvordan går det?"]], adresse: "Sendt til RADIO. Maks 28 tegn tekst.",
+      hub: "MSG|FOX|ION|Hvordan går det?", tavle: "FOX får hake i «Sendte melding», ION i «Fikk melding». Meldingen står i Samtaler." },
+    { navn: "@wolf: utenfor paret", fra: "FOX", viser: ["WOLF", "HUB"], horer: ["ION", "ICE"],
+      hva: "FOX skriver <code>@wolf Hører du meg?</code> i Serial Monitor. Det overstyrer partneren for denne ene meldingen.",
+      boks: "Hos WOLF ruller «FOX: Hører du meg?». Partneren ION ser ingenting.",
+      pakke: [["type", "M"], ["fra", "FOX"], ["til", "WOLF"], ["tekst", "Hører du meg?"]], adresse: "Sendt til RADIO.",
+      hub: "MSG|FOX|WOLF|Hører du meg?", tavle: "Står i Samtaler hos begge parene, merket «utenfor paret»." },
+    { navn: "@alle", fra: "FOX", viser: ["ION", "ICE", "WOLF", "HUB"], horer: [],
+      hva: "FOX skriver <code>@alle Lunsj klokka 12</code> i Serial Monitor.",
+      boks: "Alle bokser piper og viser «FOX: Lunsj klokka 12».",
+      pakke: [["type", "M"], ["fra", "FOX"], ["til", "* (alle)"], ["tekst", "Lunsj klokka 12"]], adresse: "Sendt til RADIO.",
+      hub: "MSG|FOX|ALLE|Lunsj klokka 12", tavle: "Står i Samtaler hos alle parene, merket «til alle»." },
+    { navn: "HUB sender", fra: "HUB", viser: ["FOX", "ION", "ICE", "WOLF"], horer: [],
+      hva: "Kursholderen skriver «Fem minutter igjen» nederst på tavla og sender til alle. Det går også an å sende til én boks.",
+      boks: "Alle bokser piper og viser «HUB: Fem minutter igjen».",
+      pakke: [["type", "M"], ["fra", "# (hub)"], ["til", "* (alle)"], ["tekst", "Fem minutter igjen"]], adresse: "Sendt til RADIO.",
+      hub: "SENDT|ALLE|Fem minutter igjen", tavle: "Står i Samtaler som en melding fra HUB." },
+    { navn: "HUB er borte", fra: "FOX", viser: [], horer: [], dod: ["HUB"], tapt: ["HUB"],
+      hva: "Strømmen til HUB blir dratt ut. FOX sender livstegn som vanlig, men ingen kvitterer.",
+      boks: "Innen fem sekunder viser FOX <b>?</b> og piper tre ganger. Knapper og meldinger mellom boksene virker som før. Når HUB er tilbake, viser boksen <b>K</b>.",
+      pakke: [["type", "H"], ["fra", "FOX"], ["partner", "ION"]], adresse: "Sendt til HUB00. Radioen prøver fire ganger, og gir så opp.",
+      hub: "(HUB er av)", tavle: "Alle navnene blir grå etter cirka 15 sekunder." }
+  ];
+  // Linje fra kanten av a til kanten av b, forskjøvet sidelengs så kvitteringen ikke dekker sendingen.
+  function kant(a, b, ut) {
+    var x1 = POS[a][0], y1 = POS[a][1], x2 = POS[b][0], y2 = POS[b][1];
+    var dx = x2 - x1, dy = y2 - y1, L = Math.sqrt(dx * dx + dy * dy), ux = dx / L, uy = dy / L;
+    var t = Math.min((B / 2 + 8) / Math.abs(ux || 1e-9), (H / 2 + 8) / Math.abs(uy || 1e-9));
+    return { x1: x1 + ux * t - uy * ut, y1: y1 + uy * t + ux * ut, x2: x2 - ux * t - uy * ut, y2: y2 - uy * t + ux * ut };
+  }
+  function vis(h) {
+    var lenker = $("sv-lenker"), noder = $("sv-noder");
+    lenker.textContent = ""; noder.textContent = "";
+    function strek(a, b, klasse, ut) { var k = kant(a, b, ut || 0); k["class"] = "sv-lenke " + klasse; lenker.appendChild(el("line", k)); return k; }
+    h.viser.forEach(function (t) { strek(h.fra, t, "", h.kvitt ? -7 : 0); });
+    h.horer.forEach(function (t) { strek(h.fra, t, "horer"); });
+    (h.tapt || []).forEach(function (t) { strek(h.fra, t, "tapt"); });
+    if (h.kvitt) {
+      var k = strek("HUB", h.fra, "kvitt", -7);
+      lenker.appendChild(el("text", { "class": "sv-lenketekst", "text-anchor": "end", x: (k.x1 + k.x2) / 2 - 14, y: (k.y1 + k.y2) / 2 + 5 }, "kvittering"));
+    }
+    Object.keys(POS).forEach(function (n) {
+      var x = POS[n][0], y = POS[n][1], klasse = "sv-node";
+      if (n === h.fra) klasse += " sender";
+      if (h.viser.indexOf(n) > -1 && n !== "HUB") klasse += " viser";
+      if ((h.dod || []).indexOf(n) > -1) klasse += " dod";
+      var g = el("g", { "class": klasse });
+      g.appendChild(el("rect", { x: x - B / 2, y: y - H / 2, width: B, height: H }));
+      g.appendChild(el("text", { x: x, y: y + 2 }, n));
+      g.appendChild(el("text", { "class": "sv-under", x: x, y: y + 22 }, UNDER[n]));
+      noder.appendChild(g);
+    });
+    $("sv-tittel").textContent = h.navn;
+    $("sv-hva").innerHTML = h.hva;
+    $("sv-boks").innerHTML = h.boks;
+    $("sv-adresse").textContent = h.adresse;
+    $("sv-hub").textContent = h.hub;
+    $("sv-tavle").textContent = h.tavle;
+    $("sv-pakke").innerHTML = h.pakke.map(function (p) { return "<span><small>" + p[0] + "</small>" + esc(p[1]) + "</span>"; }).join("");
+    [].forEach.call($("sv-valg").children, function (k, i) { k.setAttribute("aria-pressed", HENDELSER[i] === h); });
+  }
+  $("sv-valg").innerHTML = HENDELSER.map(function (h, i) { return '<button type="button" data-i="' + i + '">' + esc(h.navn) + "</button>"; }).join("");
+  $("sv-valg").onclick = function (e) { var k = e.target.closest("button"); if (k) vis(HENDELSER[+k.dataset.i]); };
+  vis(HENDELSER[3]);
+})();
+
+// ---- Kobling til serveren ----
+var STATUSTEKST = {
+  "tilkoblet": "HUB tilkoblet", "demo": "Demo: oppdiktet trafikk", "kobler til": "Kobler til HUB", "port_funnet": "Kobler til HUB",
+  "venter på hub": "Venter på HUB. Koble til USB-kabelen.", "frakoblet": "HUB frakoblet", "mangler pyserial": "Serveren mangler pyserial"
+};
+function visStatus(s) {
+  $("hubstatus").textContent = STATUSTEKST[s] || s;
+  $("hubstatus").dataset.ok = s === "tilkoblet" || s === "demo";
+  $("demoknapp").textContent = s === "demo" ? "Stopp demo" : "Start demo";
+}
+function tegn() { tegnSkall(); tegnMil(); tegnRing(); tegnFeed(); }
+
+var es = new EventSource("/stream");
+es.onmessage = function (e) {
+  var m = JSON.parse(e.data);
+  if (m._status) visStatus(m._status.serial);
+  else if (m._reset) { nullstill(); valgt = null; }
+  else if (m.linje) {
+    var fersk = Date.now() - m.ts < 3000, h = linje(m.linje, m.ts);
+    if (fersk && h) visSending(h);
+    if (fersk && m.linje.indexOf("PULS|") === 0) skudd(pos[m.linje.split("|")[1]], M, "puls");
+    if (m.linje.indexOf("ERR|") === 0) { $("hubstatus").textContent = "HUB melder: " + m.linje.slice(4); $("hubstatus").dataset.ok = false; }
+  }
+  tegn();
+};
+es.onerror = function () { $("hubstatus").textContent = "Mistet kontakt med serveren"; $("hubstatus").dataset.ok = false; };
+
+setInterval(tegn, 1000);
+teller();
+tegn();
+</script>
+</body>
+</html>

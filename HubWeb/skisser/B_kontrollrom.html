@@ -1,0 +1,82 @@
+<title>Hub Skisse B Kontrollrom</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;700&display=swap">
+<style>
+/* B: én skjerm uten faner. Venstre: mannskapsliste. Midten: levende logg med filter. Høyre: valgt par + send. */
+:root{--bg:#0b0f14;--fg:#e8edf2;--muted:#8794a3;--line:#243040;--card:#121922;--lit:#ffb000;--ok:#4cd964;--off:#4b5766;--ack:#5ac8fa;
+--display:'IBM Plex Sans Condensed','Arial Narrow',sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;color-scheme:dark}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f3f1ec;--fg:#14181d;--muted:#5d6670;--line:#c9c5bb;--card:#fff;--lit:#b45f00;--ok:#1f7a33;--off:#a6a39a;--ack:#005f99;color-scheme:light}}
+:root[data-theme="light"]{--bg:#f3f1ec;--fg:#14181d;--muted:#5d6670;--line:#c9c5bb;--card:#fff;--lit:#b45f00;--ok:#1f7a33;--off:#a6a39a;--ack:#005f99;color-scheme:light}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--mono);font-size:19px;margin:0;padding-inline:16px;padding-block:14px}
+.app{height:100%;display:grid;grid-template-columns:300px 1fr 380px;grid-template-rows:auto 1fr;gap:14px}
+@media(max-width:1100px){.app{grid-template-columns:1fr;height:auto}}
+.top{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:10px 24px;align-items:baseline;justify-content:space-between;border-bottom:2px solid var(--line);padding-bottom:10px}
+.top h1{font-family:var(--display);font-size:30px;margin:0;letter-spacing:.02em}
+.top span{color:var(--muted);font-size:17px}
+.top button{font:inherit;font-size:17px;color:var(--ack);background:none;border:1.5px solid var(--ack);padding:4px 12px;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--ack);outline-offset:2px}
+.col{background:var(--card);border:1.5px solid var(--line);min-height:0;display:flex;flex-direction:column}
+.col h2{font-family:var(--display);font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0;padding:10px 14px;border-bottom:1.5px solid var(--line);font-weight:500}
+.roster{list-style:none;margin:0;padding:0;overflow:auto}
+.roster li{display:grid;grid-template-columns:18px 1fr auto;gap:10px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--line);cursor:pointer}
+.roster li[aria-current="true"]{background:var(--line)}
+.roster .d{width:14px;height:14px;background:var(--ok)}
+.roster li.lit .d{background:var(--lit)}
+.roster li.off{color:var(--off)}.roster li.off .d{background:none;border:2px solid var(--off)}
+.roster b{font-family:var(--display);font-size:26px;font-weight:700;letter-spacing:.03em}
+.roster small{color:var(--muted);font-size:15px}
+.gap{padding:6px 14px;font-size:13px;color:var(--muted);border-bottom:1px solid var(--line);letter-spacing:.08em;text-transform:uppercase}
+.fil{display:flex;border-bottom:1.5px solid var(--line)}
+.fil button{font:inherit;font-size:17px;flex:1;padding:10px;background:none;color:var(--muted);border:0;border-right:1.5px solid var(--line);cursor:pointer}
+.fil button[aria-pressed="true"]{color:var(--fg);box-shadow:inset 0 -4px 0 var(--lit)}
+.stream{list-style:none;margin:0;padding:6px 0;overflow:auto;flex:1}
+.stream li{display:grid;grid-template-columns:86px 78px 1fr;gap:12px;padding:7px 16px;align-items:baseline;font-size:21px}
+.stream time{color:var(--muted);font-size:16px}
+.k{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.k.tenn{color:var(--lit)}.k.msg{color:var(--ack)}
+.stream .x{color:var(--muted);font-size:14px;margin-left:8px}
+.detail{padding:14px;display:flex;flex-direction:column;gap:12px;overflow:auto}
+.pairname{font-family:var(--display);font-weight:700;font-size:44px;line-height:1}
+.pairname i{font-style:normal;color:var(--muted);padding-inline:8px}
+.conv{display:flex;flex-direction:column;gap:8px;font-size:19px}
+.conv p{margin:0;padding:6px 10px;border-left:4px solid var(--ack)}
+.conv p.b{border-left-color:var(--lit)}
+.conv small{display:block;color:var(--muted);font-size:14px}
+form{display:flex;flex-direction:column;gap:8px;margin-top:auto}
+form select,form input{font:inherit;font-size:20px;padding:10px;background:var(--bg);color:var(--fg);border:1.5px solid var(--line)}
+form button{font:inherit;font-weight:600;font-size:20px;padding:10px;background:var(--lit);color:var(--bg);border:0;cursor:pointer}
+</style>
+<div class="app">
+<div class="top"><h1>TEKNARADIO HUB</h1><span>10 av 12 på nett · siste hendelse 2 s siden</span><button>Signalvei</button><button>Oppsett</button></div>
+
+<section class="col"><h2>Mannskap</h2><ul class="roster" id="roster"></ul></section>
+
+<section class="col"><h2>Logg</h2>
+  <div class="fil" id="fil"><button aria-pressed="true">Alt</button><button aria-pressed="false">Skjerm tent/slukket</button><button aria-pressed="false">Meldinger</button></div>
+  <ul class="stream" id="stream"></ul></section>
+
+<section class="col"><h2>Valgt par</h2>
+  <div class="detail">
+    <div class="pairname" id="pn"></div>
+    <div class="conv" id="conv"></div>
+    <form onsubmit="return false"><select id="to"></select><input placeholder="Melding..." aria-label="Melding"><button>SEND</button></form>
+  </div></section>
+</div>
+<script>
+var P=[["HAWK","JET"],["ICE","WOLF"],["ACE","PUMA"],["BOLT","ORCA"],["ION","FOX"],["LYNX","NOVA"]];
+var ST={HAWK:["lit",2],JET:["on",3],ICE:["on",1],WOLF:["on",4],ACE:["on",2],PUMA:["lit",5],BOLT:["on",3],ORCA:["off"],ION:["lit",1],FOX:["on",2],LYNX:["off"],NOVA:["on",9]};
+var L=[["12:06:10","msg","FOX → ION","Hei! Ser du denne?"],["12:05:44","msg","ICE → WOLF","Kjører vi forsøk 2 nå"],["12:05:20","msg","HAWK → PUMA","Hvem er du sammen med?","utenfor paret"],["12:04:55","msg","JET → HAWK","Funker det?"],["12:04:31","tenn","FOX tente ION",""],["12:04:12","tenn","ACE tente PUMA",""],["12:04:02","msg","ACE → ALLE","Vi har første melding!","til alle"],["12:03:58","tenn","JET tente HAWK",""],["12:03:40","tenn","ICE slukket WOLF",""],["12:03:05","on","NOVA online",""]];
+var cur=4;
+function $(i){return document.getElementById(i)}
+$("roster").innerHTML=P.map(function(p,i){return '<div class="gap">Par '+(i+1)+'</div>'+p.map(function(n){var s=ST[n];return '<li class="'+s[0]+'" data-p="'+i+'"><span class="d"></span><b>'+n+'</b><small>'+(s[0]=="off"?"ikke med":s[0]=="lit"?"tent":s[1]+" s")+'</small></li>'}).join("")}).join("");
+function stream(f){$("stream").innerHTML=L.filter(function(l){return f==0||(f==1&&l[1]=="tenn")||(f==2&&l[1]=="msg")}).map(function(l){return '<li><time>'+l[0]+'</time><span class="k '+l[1]+'">'+({msg:"melding",tenn:"skjerm",on:"online"})[l[1]]+'</span><span>'+l[2]+(l[3]?'  «'+l[3]+'»':'')+(l[4]?'<span class="x">'+l[4]+'</span>':'')+'</span></li>'}).join("")}
+stream(0);
+$("fil").onclick=function(e){var i=[].indexOf.call($("fil").children,e.target);if(i<0)return;[].forEach.call($("fil").children,function(b){b.setAttribute("aria-pressed",b===e.target)});stream(i)};
+function pair(i){cur=i;var p=P[i];$("pn").innerHTML=p[0]+"<i>–</i>"+p[1];
+ $("conv").innerHTML=L.filter(function(l){return l[1]=="msg"&&(l[2].indexOf(p[0])>-1||l[2].indexOf(p[1])>-1||l[2].indexOf("ALLE")>-1)}).map(function(l){return '<p class="'+(l[2].indexOf(p[1])==0?"b":"")+'"><small>'+l[0]+' '+l[2]+(l[4]?' · '+l[4]:'')+'</small>'+l[3]+'</p>'}).join("");
+ $("to").innerHTML="<option>Til "+p[0]+" og "+p[1]+"</option><option>Til "+p[0]+"</option><option>Til "+p[1]+"</option><option>Til alle</option>";
+ [].forEach.call($("roster").querySelectorAll("li"),function(li){li.setAttribute("aria-current",li.dataset.p==i)})}
+$("roster").onclick=function(e){var li=e.target.closest("li");if(li)pair(+li.dataset.p)};
+pair(4);
+</script>

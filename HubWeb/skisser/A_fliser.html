@@ -1,0 +1,110 @@
+<title>Hub Skisse A Fliser</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Public+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* A: faner øverst, én visning om gangen. Leksjon 1 = store fliser per boks, gruppert i par. */
+:root{--bg:#eef1f6;--fg:#131a2a;--muted:#566079;--line:#c9d0de;--card:#fff;--lit:#d9480f;--litfg:#fff;--ok:#2b8a3e;--off:#9aa3b8;--ack:#1971c2;
+--display:'Chakra Petch','Trebuchet MS',sans-serif;--body:'Public Sans','Helvetica Neue',Arial,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1220;--fg:#e4e8f2;--muted:#98a2ba;--line:#28314a;--card:#151c2e;--lit:#ff8a50;--litfg:#0d1220;--ok:#5bd17a;--off:#5b667f;--ack:#63b3ff;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0d1220;--fg:#e4e8f2;--muted:#98a2ba;--line:#28314a;--card:#151c2e;--lit:#ff8a50;--litfg:#0d1220;--ok:#5bd17a;--off:#5b667f;--ack:#63b3ff;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:20px;margin:0}
+.wrap{max-width:1500px;margin:0 auto;padding-inline:24px;padding-block:20px 40px;display:flex;flex-direction:column;gap:20px}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px;justify-content:space-between}
+h1{font-family:var(--display);font-size:34px;margin:0}
+.tabs{display:flex;gap:0;border:2px solid var(--fg)}
+.tabs button{font-family:var(--display);font-weight:600;font-size:24px;padding:10px 26px;background:var(--card);color:var(--fg);border:0;border-right:2px solid var(--fg);cursor:pointer}
+.tabs button:last-child{border-right:0}
+.tabs button[aria-selected="true"]{background:var(--fg);color:var(--bg)}
+button:focus-visible{outline:3px solid var(--ack);outline-offset:2px}
+.status{font-family:var(--mono);font-size:18px;color:var(--muted)}
+.setup{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.setup b{font-family:var(--display);font-size:16px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:8px}
+.chip{font-family:var(--mono);font-size:16px;padding:4px 10px;border:1.5px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--fg);background:var(--fg);color:var(--bg)}
+.l1{display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start}
+@media(max-width:1000px){.l1{grid-template-columns:1fr}}
+.pairs{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:14px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:0;border:2px solid var(--line);background:var(--card)}
+.tile{padding:18px 18px 14px;min-height:150px;display:flex;flex-direction:column;justify-content:space-between;border-right:2px solid var(--line)}
+.tile:last-child{border-right:0}
+.tile .n{font-family:var(--display);font-weight:700;font-size:58px;line-height:1}
+.tile .s{font-family:var(--mono);font-size:17px}
+.tile.on .s::before{content:"";display:inline-block;width:14px;height:14px;background:var(--ok);margin-right:8px}
+.tile.lit{background:var(--lit);color:var(--litfg)}
+.tile.lit .s::before{background:var(--litfg)}
+.tile.off{color:var(--off)}
+.tile.off .s::before{content:"";display:inline-block;width:14px;height:14px;border:2px solid var(--off);margin-right:8px}
+.tile.off .n{text-decoration:line-through;text-decoration-thickness:3px}
+.log{border:2px solid var(--line);background:var(--card);padding:14px 16px}
+.log h2{font-family:var(--display);font-size:16px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.log ol{list-style:none;margin:0;padding:0;font-family:var(--mono);font-size:19px;display:flex;flex-direction:column;gap:6px}
+.log time{color:var(--muted);margin-right:10px}
+.filters{display:flex;flex-wrap:wrap;gap:8px}
+.msgs{display:flex;flex-direction:column;border:2px solid var(--line);background:var(--card)}
+.m{display:grid;grid-template-columns:90px 190px 1fr auto;gap:14px;padding:12px 16px;border-bottom:1px solid var(--line);align-items:baseline}
+.m:last-child{border-bottom:0}
+.m time{font-family:var(--mono);font-size:17px;color:var(--muted)}
+.m .who{font-family:var(--display);font-weight:700;font-size:24px}
+.m .txt{font-size:24px;overflow-wrap:anywhere}
+.tag{font-family:var(--mono);font-size:14px;letter-spacing:.05em;text-transform:uppercase;border:1.5px solid var(--ack);color:var(--ack);padding:2px 8px;white-space:nowrap}
+.tag.all{border-color:var(--lit);color:var(--lit)}
+.send{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch}
+.send select,.send input{font:inherit;font-size:22px;padding:10px 12px;border:2px solid var(--fg);background:var(--card);color:var(--fg)}
+.send input{flex:1;min-width:200px}
+.send button{font-family:var(--display);font-weight:700;font-size:22px;padding:10px 28px;background:var(--fg);color:var(--bg);border:0;cursor:pointer}
+.ph{border:2px dashed var(--line);padding:60px 20px;text-align:center;color:var(--muted);font-family:var(--mono)}
+[hidden]{display:none!important}
+</style>
+<div class="wrap">
+<header>
+  <h1>TeknaRadio Hub</h1>
+  <div class="tabs" role="tablist" id="tabs">
+    <button role="tab" aria-selected="true" data-t="l1">Leksjon 1</button>
+    <button role="tab" aria-selected="false" data-t="msg">Meldinger</button>
+    <button role="tab" aria-selected="false" data-t="sig">Signalvei</button>
+  </div>
+  <div class="status">hub tilkoblet · 10 av 12 på nett</div>
+</header>
+<div class="setup"><b>Med i dag</b><span id="setup"></span></div>
+
+<section id="l1" class="l1">
+  <div class="pairs" id="pairs"></div>
+  <aside class="log"><h2>Hendelser</h2><ol id="evlog"></ol></aside>
+</section>
+
+<section id="msg" hidden style="display:flex;flex-direction:column;gap:16px">
+  <div class="filters" id="filters"></div>
+  <div class="msgs" id="msgs"></div>
+</section>
+
+<section id="sig" hidden><div class="ph">Skisse B «Signalvei» settes inn her som egen fane, med LAMA/WOLF byttet til ekte navn fra lista.</div></section>
+
+<form class="send" onsubmit="return false">
+  <select id="to" aria-label="Til"><option>Alle</option></select>
+  <input id="txt" placeholder="Skriv til boksen..." aria-label="Melding">
+  <button>Send</button>
+</form>
+</div>
+<script>
+var P=[["HAWK","JET"],["ICE","WOLF"],["ACE","PUMA"],["BOLT","ORCA"],["ION","FOX"],["LYNX","NOVA"]];
+var ST={HAWK:["lit",2],JET:["on",3],ICE:["on",1],WOLF:["on",4],ACE:["on",2],PUMA:["lit",5],BOLT:["on",3],ORCA:["off"],ION:["lit",1],FOX:["on",2],LYNX:["off"],NOVA:["on",9]};
+var EV=[["12:04:31","FOX tente ION"],["12:04:12","ACE tente PUMA"],["12:03:58","JET tente HAWK"],["12:03:40","WOLF slukket av ICE"],["12:03:05","NOVA online"]];
+var MS=[["12:06:10","FOX","ION","Hei! Ser du denne?",""],["12:05:44","ICE","WOLF","Kjører vi forsøk 2 nå",""],["12:05:20","HAWK","PUMA","Hvem er du sammen med?","ut"],["12:04:55","JET","HAWK","Funker det?",""],["12:04:02","ACE","*","Vi har første melding!","alle"]];
+var sel={},on=P.flat().filter(function(n){return ST[n][0]!="off"});
+function $(i){return document.getElementById(i)}
+$("setup").innerHTML=P.flat().map(function(n){return '<button class="chip" aria-pressed="'+(ST[n][0]!="off")+'">'+n+'</button>'}).join(" ");
+$("setup").onclick=function(e){if(e.target.classList.contains("chip"))e.target.setAttribute("aria-pressed",e.target.getAttribute("aria-pressed")!="true")};
+function tile(n){var s=ST[n],c=s[0];return '<div class="tile '+c+'"><span class="n">'+n+'</span><span class="s">'+(c=="off"?"ikke med":c=="lit"?"SKJERM TENT":"på nett · "+s[1]+" s")+'</span></div>'}
+$("pairs").innerHTML=P.map(function(p){return '<div class="pair">'+tile(p[0])+tile(p[1])+'</div>'}).join("");
+$("evlog").innerHTML=EV.map(function(e){return '<li><time>'+e[0]+'</time>'+e[1]+'</li>'}).join("");
+var F=["Alt"].concat(P.map(function(p){return p[0]+"–"+p[1]}));
+$("filters").innerHTML=F.map(function(f,i){return '<button class="chip" aria-pressed="'+(i==0)+'" data-f="'+i+'">'+f+'</button>'}).join("");
+function inPair(n,p){return p.indexOf(n)>-1}
+function draw(f){$("msgs").innerHTML=MS.filter(function(m){if(!f)return true;var p=P[f-1];return inPair(m[1],p)||inPair(m[2],p)||m[2]=="*"}).map(function(m){
+ var tag=m[4]=="alle"?'<span class="tag all">til alle</span>':m[4]=="ut"?'<span class="tag">utenfor paret</span>':'<span></span>';
+ return '<div class="m"><time>'+m[0]+'</time><span class="who">'+m[1]+' → '+(m[2]=="*"?"ALLE":m[2])+'</span><span class="txt">'+m[3]+'</span>'+tag+'</div>'}).join("")}
+draw(0);
+$("filters").onclick=function(e){var f=e.target.dataset.f;if(f==null)return;[].forEach.call($("filters").children,function(b){b.setAttribute("aria-pressed",b===e.target)});draw(+f)};
+$("to").innerHTML+=P.flat().map(function(n){return "<option>"+n+"</option>"}).join("");
+$("tabs").onclick=function(e){var t=e.target.dataset.t;if(!t)return;[].forEach.call($("tabs").children,function(b){b.setAttribute("aria-selected",b===e.target)});["l1","msg","sig"].forEach(function(k){$(k).hidden=k!=t})};
+</script>
